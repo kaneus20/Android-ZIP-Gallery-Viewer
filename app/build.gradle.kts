@@ -87,7 +87,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.5.0")
 
     // 7-Zip-JBinding-4Android
-    implementation("com.github.hzy3774:AndroidP7zip:v1.7.0")
+    implementation("com.github.omicronapps:7-Zip-JBinding-4Android:Release-16.02-2.03")
 
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
