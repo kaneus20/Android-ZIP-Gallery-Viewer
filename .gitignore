@@ -52,3 +52,4 @@ Thumbs.db
 
 # Firebase
 google-services.json
+*.hprof
