@@ -2,7 +2,6 @@ package id.flwi.zipgalleryviewer.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -82,17 +81,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // Show toast when file is selected
-                LaunchedEffect(selectedFileUri) {
-                    selectedFileUri?.let { uri ->
-                        val filename = fileSelectionModule.getFileNameFromUri(uri)
-                        Toast.makeText(
-                            context,
-                            "Selected: $filename",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
+                // Show toast when file is selected (removed - handled by extraction)
+                // Toast notification removed to avoid confusion during extraction
 
                 // Perform cleanup on app launch
                 LaunchedEffect(Unit) {
@@ -102,13 +92,18 @@ class MainActivity : ComponentActivity() {
                     cleanupComplete = true
                 }
 
+                // Observe UI state
+                val uiState by loadViewModel.uiState.collectAsState()
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     if (cleanupComplete) {
                         LoadScreen(
-                            onLoadClicked = { loadViewModel.onLoadClicked() }
+                            uiState = uiState,
+                            onLoadClicked = { loadViewModel.onLoadClicked() },
+                            onDismissError = { loadViewModel.dismissError() }
                         )
                     }
                 }
