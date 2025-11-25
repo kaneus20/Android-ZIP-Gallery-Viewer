@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import id.flwi.zipgalleryviewer.manager.FileSelectionModule
 import id.flwi.zipgalleryviewer.service.CleanupService
 import javax.inject.Singleton
 
@@ -22,5 +23,11 @@ object AppModule {
         @ApplicationContext context: Context
     ): CleanupService {
         return CleanupService(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFileSelectionModule(): FileSelectionModule {
+        return FileSelectionModule()
     }
 }

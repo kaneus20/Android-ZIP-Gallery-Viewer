@@ -1,5 +1,6 @@
 package id.flwi.zipgalleryviewer.ui.screens.load
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -19,9 +20,13 @@ import id.flwi.zipgalleryviewer.ui.theme.ZipGalleryViewerTheme
 /**
  * Initial screen showing a large "Load" icon in the center.
  * Displayed after the cleanup process completes.
+ *
+ * @param onLoadClicked Callback invoked when the Load icon is tapped
+ * @param modifier Optional modifier for the composable
  */
 @Composable
 fun LoadScreen(
+    onLoadClicked: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -31,7 +36,9 @@ fun LoadScreen(
         Icon(
             imageVector = Icons.Filled.FolderOpen,
             contentDescription = stringResource(R.string.load_content),
-            modifier = Modifier.size(120.dp),
+            modifier = Modifier
+                .size(120.dp)
+                .clickable(onClick = onLoadClicked),
             tint = MaterialTheme.colorScheme.primary
         )
     }
