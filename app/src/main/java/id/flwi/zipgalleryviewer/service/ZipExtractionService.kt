@@ -17,6 +17,7 @@ import net.sf.sevenzipjbinding.ExtractAskMode
 import net.sf.sevenzipjbinding.ExtractOperationResult
 import net.sf.sevenzipjbinding.IArchiveExtractCallback
 import net.sf.sevenzipjbinding.IArchiveOpenCallback
+import net.sf.sevenzipjbinding.ICryptoGetTextPassword
 import net.sf.sevenzipjbinding.IInArchive
 import net.sf.sevenzipjbinding.ISequentialOutStream
 import net.sf.sevenzipjbinding.PropID
@@ -45,7 +46,7 @@ class ZipExtractionService @Inject constructor(
      * Emits progress updates via Flow.
      *
      * @param zipUri URI of the zip file to extract
-     * @param password Optional password for encrypted archives (not used in this story)
+     * @param password Optional password for encrypted archives
      * @return Flow of ExtractionState updates
      */
     fun extract(zipUri: Uri, password: String? = null): Flow<ExtractionState> = flow {
@@ -73,9 +74,17 @@ class ZipExtractionService @Inject constructor(
                 randomAccessFile = RandomAccessFile(tempZipFile, "r")
                 inStream = RandomAccessFileInStream(randomAccessFile)
 
-                // Open archive with callback
-                val openCallback = ArchiveOpenCallback()
+                // Open archive with password-aware callback
+                val openCallback = ArchiveOpenCallback(password)
                 inArchive = SevenZip.openInArchive(null, inStream, openCallback)
+
+                // Check if archive is encrypted and no password provided
+                val isEncrypted = isArchiveEncrypted(inArchive)
+                if (isEncrypted && password == null) {
+                    Log.d(TAG, "Archive is password-protected, requesting password")
+                    emit(ExtractionState.PasswordRequired)
+                    return@flow
+                }
 
                 val itemCount = inArchive.numberOfItems
                 Log.d(TAG, "Archive contains $itemCount items")
@@ -87,6 +96,7 @@ class ZipExtractionService @Inject constructor(
                     inArchive,
                     outputDir,
                     itemCount,
+                    password,
                     onProgress = { current, total, fileName ->
                         val progress = 20 + ((current.toFloat() / total) * 70).toInt()
                         // Don't emit too frequently to avoid overwhelming the UI
@@ -96,9 +106,7 @@ class ZipExtractionService @Inject constructor(
                     }
                 )
 
-                inArchive.extract(null, false, extractCallback)
-
-                // Check if extraction was successful
+                inArchive.extract(null, false, extractCallback)                // Check if extraction was successful
                 if (extractCallback.hasError) {
                     throw extractCallback.error ?: ZipCorruptionException("Extraction failed")
                 }
@@ -165,9 +173,33 @@ class ZipExtractionService @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     /**
-     * Archive open callback for 7-Zip.
+     * Checks if an archive is encrypted by testing the first item.
      */
-    private inner class ArchiveOpenCallback : IArchiveOpenCallback {
+    private fun isArchiveEncrypted(inArchive: IInArchive): Boolean {
+        return try {
+            val itemCount = inArchive.numberOfItems
+            if (itemCount == 0) return false
+
+            // Check if any item is encrypted
+            for (i in 0 until itemCount) {
+                val encrypted = inArchive.getProperty(i, PropID.ENCRYPTED) as? Boolean
+                if (encrypted == true) {
+                    return true
+                }
+            }
+            false
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking encryption status", e)
+            false
+        }
+    }
+
+    /**
+     * Archive open callback for 7-Zip with password support.
+     */
+    private inner class ArchiveOpenCallback(
+        private val password: String? = null
+    ) : IArchiveOpenCallback, ICryptoGetTextPassword {
         override fun setTotal(files: Long?, bytes: Long?) {
             Log.d(TAG, "Archive open, total: $files files, $bytes bytes")
         }
@@ -175,23 +207,27 @@ class ZipExtractionService @Inject constructor(
         override fun setCompleted(files: Long?, bytes: Long?) {
             Log.d(TAG, "Archive open, completed: $files files, $bytes bytes")
         }
+
+        override fun cryptoGetTextPassword(): String {
+            return password ?: ""
+        }
     }
 
     /**
-     * Archive extract callback for 7-Zip with progress tracking.
+     * Archive extract callback for 7-Zip with progress tracking and password support.
      */
     private inner class ArchiveExtractCallback(
         private val inArchive: IInArchive,
         private val outputDir: File,
         private val totalItems: Int,
+        private val password: String?,
         private val onProgress: (current: Int, total: Int, fileName: String?) -> Unit
-    ) : IArchiveExtractCallback {
+    ) : IArchiveExtractCallback, ICryptoGetTextPassword {
 
         var hasError = false
         var error: Exception? = null
         private var currentIndex = 0
         private var extractedCount = 0
-
         override fun getStream(index: Int, extractAskMode: ExtractAskMode?): ISequentialOutStream? {
             currentIndex = index
 
@@ -260,6 +296,10 @@ class ZipExtractionService @Inject constructor(
 
         override fun setCompleted(complete: Long) {
             // Progress in bytes - could be used for more granular progress
+        }
+
+        override fun cryptoGetTextPassword(): String {
+            return password ?: ""
         }
     }
 

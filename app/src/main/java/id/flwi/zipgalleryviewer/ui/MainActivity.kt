@@ -103,7 +103,9 @@ class MainActivity : ComponentActivity() {
                         LoadScreen(
                             uiState = uiState,
                             onLoadClicked = { loadViewModel.onLoadClicked() },
-                            onDismissError = { loadViewModel.dismissError() }
+                            onDismissError = { loadViewModel.dismissError() },
+                            onPasswordSubmit = { password -> loadViewModel.onPasswordSubmit(password) },
+                            onPasswordCancel = { loadViewModel.onPasswordCancel() }
                         )
                     }
                 }

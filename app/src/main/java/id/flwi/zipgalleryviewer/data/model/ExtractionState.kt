@@ -33,4 +33,9 @@ sealed class ExtractionState {
         val error: Throwable,
         val message: String
     ) : ExtractionState()
+
+    /**
+     * Archive requires a password to extract.
+     */
+    object PasswordRequired : ExtractionState()
 }

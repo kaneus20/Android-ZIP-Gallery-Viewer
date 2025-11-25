@@ -27,15 +27,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.flwi.zipgalleryviewer.R
+import id.flwi.zipgalleryviewer.ui.components.PasswordInputDialog
 import id.flwi.zipgalleryviewer.ui.theme.ZipGalleryViewerTheme
 
 /**
  * Initial screen showing a large "Load" icon in the center.
- * Displays loading indicator during extraction and error dialogs on failure.
+ * Displays loading indicator during extraction, password dialog for encrypted archives,
+ * and error dialogs on failure.
  *
  * @param uiState Current UI state
  * @param onLoadClicked Callback invoked when the Load icon is tapped
  * @param onDismissError Callback to dismiss error dialog
+ * @param onPasswordSubmit Callback when user submits password
+ * @param onPasswordCancel Callback when user cancels password dialog
  * @param modifier Optional modifier for the composable
  */
 @Composable
@@ -43,6 +47,8 @@ fun LoadScreen(
     uiState: LoadUiState = LoadUiState.Idle,
     onLoadClicked: () -> Unit = {},
     onDismissError: () -> Unit = {},
+    onPasswordSubmit: (String) -> Unit = {},
+    onPasswordCancel: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -119,6 +125,23 @@ fun LoadScreen(
                     }
                 )
             }
+            is LoadUiState.PasswordRequired -> {
+                // Show password input dialog
+                Icon(
+                    imageVector = Icons.Filled.FolderOpen,
+                    contentDescription = stringResource(R.string.load_content),
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clickable(onClick = onLoadClicked),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                PasswordInputDialog(
+                    onDismiss = onPasswordCancel,
+                    onPasswordSubmit = onPasswordSubmit,
+                    errorMessage = uiState.errorMessage
+                )
+            }
             is LoadUiState.Success -> {
                 // Success state - will transition to gallery in future story
                 Text(
@@ -155,6 +178,26 @@ fun LoadScreenErrorPreview() {
     ZipGalleryViewerTheme {
         LoadScreen(
             uiState = LoadUiState.Error("The selected file is corrupted or invalid.")
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoadScreenPasswordPreview() {
+    ZipGalleryViewerTheme {
+        LoadScreen(
+            uiState = LoadUiState.PasswordRequired()
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoadScreenPasswordErrorPreview() {
+    ZipGalleryViewerTheme {
+        LoadScreen(
+            uiState = LoadUiState.PasswordRequired("Incorrect password. Please try again.")
         )
     }
 }
