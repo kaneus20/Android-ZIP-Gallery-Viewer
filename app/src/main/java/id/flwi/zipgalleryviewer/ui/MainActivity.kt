@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import id.flwi.zipgalleryviewer.manager.FileSelectionModule
+import id.flwi.zipgalleryviewer.manager.NotificationManager
 import id.flwi.zipgalleryviewer.service.CleanupService
 import id.flwi.zipgalleryviewer.data.model.ImageEntry
 import id.flwi.zipgalleryviewer.ui.screens.gallery.GalleryScreen
@@ -48,8 +49,14 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var fileSelectionModule: FileSelectionModule
 
+    @Inject
+    lateinit var notificationManager: NotificationManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Check if the activity was launched from the exit notification
+        handleExitIntent(intent)
 
         setContent {
             ZipGalleryViewerTheme {
@@ -101,6 +108,8 @@ class MainActivity : ComponentActivity() {
                     if (loadUiState is LoadUiState.Success) {
                         showGallery = true
                         galleryViewModel.refresh()
+                        // Show persistent notification after gallery is displayed
+                        notificationManager.showPersistentExitNotification()
                     }
                 }
 
@@ -109,6 +118,8 @@ class MainActivity : ComponentActivity() {
                     withContext(Dispatchers.IO) {
                         cleanupService.clearAllExtractedContent()
                     }
+                    // Hide notification on cleanup
+                    notificationManager.hidePersistentExitNotification()
                     cleanupComplete = true
                 }
 
@@ -164,6 +175,22 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleExitIntent(intent)
+    }
+
+    /**
+     * Handles the exit intent from the persistent notification.
+     * This will be expanded in Story 3.2 to show the exit confirmation dialog.
+     */
+    private fun handleExitIntent(intent: Intent?) {
+        if (intent?.action == NotificationManager.ACTION_EXIT_APP) {
+            // TODO: Story 3.2 - Show exit confirmation dialog
+            // For now, this just brings the app to the foreground
         }
     }
 }
