@@ -12,7 +12,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "id.flwi.zipgalleryviewer2"
+        applicationId = "id.flwi.zipgalleryviewer"
         minSdk = 35
         targetSdk = 35
         versionCode = 1
