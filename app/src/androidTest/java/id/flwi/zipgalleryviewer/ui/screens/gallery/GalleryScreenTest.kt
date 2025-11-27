@@ -37,9 +37,11 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Loading,
                     isAtRoot = true,
+                    isGridView = true,
                     onFolderClick = {},
                     onImageClick = {},
-                    onUpClick = {}
+                    onUpClick = {},
+                    onLayoutToggle = {}
                 )
             }
         }
@@ -57,9 +59,11 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = true,
+                    isGridView = true,
                     onFolderClick = {},
                     onImageClick = {},
-                    onUpClick = {}
+                    onUpClick = {},
+                    onLayoutToggle = {}
                 )
             }
         }
@@ -85,9 +89,11 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
                     isAtRoot = true,
+                    isGridView = true,
                     onFolderClick = {},
                     onImageClick = {},
-                    onUpClick = {}
+                    onUpClick = {},
+                    onLayoutToggle = {}
                 )
             }
         }
@@ -122,9 +128,11 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
                     isAtRoot = true,
+                    isGridView = true,
                     onFolderClick = {},
                     onImageClick = {},
-                    onUpClick = {}
+                    onUpClick = {},
+                    onLayoutToggle = {}
                 )
             }
         }
@@ -147,9 +155,11 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
                     isAtRoot = true,
+                    isGridView = true,
                     onFolderClick = { clickedPath = it },
                     onImageClick = {},
-                    onUpClick = {}
+                    onUpClick = {},
+                    onLayoutToggle = {}
                 )
             }
         }
@@ -174,9 +184,11 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
                     isAtRoot = true,
+                    isGridView = true,
                     onFolderClick = {},
                     onImageClick = { clickedPath = it },
-                    onUpClick = {}
+                    onUpClick = {},
+                    onLayoutToggle = {}
                 )
             }
         }
@@ -199,9 +211,11 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Error(errorMessage),
                     isAtRoot = true,
+                    isGridView = true,
                     onFolderClick = {},
                     onImageClick = {},
-                    onUpClick = {}
+                    onUpClick = {},
+                    onLayoutToggle = {}
                 )
             }
         }
@@ -224,9 +238,11 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
                     isAtRoot = true,
+                    isGridView = true,
                     onFolderClick = {},
                     onImageClick = {},
-                    onUpClick = {}
+                    onUpClick = {},
+                    onLayoutToggle = {}
                 )
             }
         }
@@ -243,9 +259,11 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = true,
+                    isGridView = true,
                     onFolderClick = {},
                     onImageClick = {},
-                    onUpClick = {}
+                    onUpClick = {},
+                    onLayoutToggle = {}
                 )
             }
         }
@@ -263,9 +281,11 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = false,
+                    isGridView = true,
                     onFolderClick = {},
                     onImageClick = {},
-                    onUpClick = {}
+                    onUpClick = {},
+                    onLayoutToggle = {}
                 )
             }
         }
@@ -285,9 +305,11 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = false,
+                    isGridView = true,
                     onFolderClick = {},
                     onImageClick = {},
-                    onUpClick = { upClicked = true }
+                    onUpClick = { upClicked = true },
+                    onLayoutToggle = {}
                 )
             }
         }
@@ -307,14 +329,114 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = true,
+                    isGridView = true,
                     onFolderClick = {},
                     onImageClick = {},
-                    onUpClick = {}
+                    onUpClick = {},
+                    onLayoutToggle = {}
                 )
             }
         }
 
         // Assert
         composeTestRule.onNodeWithText("Gallery").assertIsDisplayed()
+    }
+
+    @Test
+    fun gridView_displaysLayoutToggleButton() {
+        // Arrange & Act
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(emptyList()),
+                    isAtRoot = true,
+                    isGridView = true,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onUpClick = {},
+                    onLayoutToggle = {}
+                )
+            }
+        }
+
+        // Assert - Icon shows ViewList when in grid mode
+        composeTestRule.onNodeWithContentDescription("Switch to list view")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun listView_displaysLayoutToggleButton() {
+        // Arrange & Act
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(emptyList()),
+                    isAtRoot = true,
+                    isGridView = false,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onUpClick = {},
+                    onLayoutToggle = {}
+                )
+            }
+        }
+
+        // Assert - Icon shows GridView when in list mode
+        composeTestRule.onNodeWithContentDescription("Switch to grid view")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun layoutToggleClick_triggersCallback() {
+        // Arrange
+        var layoutToggled = false
+
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(emptyList()),
+                    isAtRoot = true,
+                    isGridView = true,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onUpClick = {},
+                    onLayoutToggle = { layoutToggled = true }
+                )
+            }
+        }
+
+        // Act
+        composeTestRule.onNodeWithContentDescription("Switch to list view").performClick()
+
+        // Assert
+        assertTrue(layoutToggled)
+    }
+
+    @Test
+    fun listView_displaysFoldersInListFormat() {
+        // Arrange
+        val entries = listOf(
+            FolderEntry("photos", "photos", null, 5),
+            ImageEntry("image1.jpg", "image1.jpg", null, "".toUri(), null, "image/jpeg")
+        )
+
+        // Act
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(entries),
+                    isAtRoot = true,
+                    isGridView = false,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onUpClick = {},
+                    onLayoutToggle = {}
+                )
+            }
+        }
+
+        // Assert - Items should still be displayed with their names
+        composeTestRule.onNodeWithText("photos").assertIsDisplayed()
+        composeTestRule.onNodeWithText("image1.jpg").assertIsDisplayed()
     }
 }

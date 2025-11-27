@@ -38,6 +38,9 @@ class GalleryViewModel @Inject constructor(
     private val _isAtRoot = MutableStateFlow(true)
     val isAtRoot: StateFlow<Boolean> = _isAtRoot.asStateFlow()
 
+    private val _isGridView = MutableStateFlow(true)
+    val isGridView: StateFlow<Boolean> = _isGridView.asStateFlow()
+
     init {
         loadEntries("/")
     }
@@ -88,5 +91,12 @@ class GalleryViewModel @Inject constructor(
      */
     fun refresh() {
         loadEntries(_currentPath.value)
+    }
+
+    /**
+     * Toggles between grid and list view.
+     */
+    fun toggleLayout() {
+        _isGridView.value = !_isGridView.value
     }
 }

@@ -243,4 +243,70 @@ class GalleryViewModelTest {
         // Assert
         assertTrue(viewModel.isAtRoot.value)
     }
+
+    @Test
+    fun `isGridView is true by default`() = runTest {
+        // Arrange
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
+
+        // Act
+        viewModel = GalleryViewModel(fileRepository)
+        advanceUntilIdle()
+
+        // Assert
+        assertTrue(viewModel.isGridView.value)
+    }
+
+    @Test
+    fun `toggleLayout switches isGridView from true to false`() = runTest {
+        // Arrange
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
+        viewModel = GalleryViewModel(fileRepository)
+        advanceUntilIdle()
+
+        // Act
+        viewModel.toggleLayout()
+
+        // Assert
+        assertEquals(false, viewModel.isGridView.value)
+    }
+
+    @Test
+    fun `toggleLayout switches isGridView from false to true`() = runTest {
+        // Arrange
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
+        viewModel = GalleryViewModel(fileRepository)
+        advanceUntilIdle()
+
+        viewModel.toggleLayout() // Set to false
+
+        // Act
+        viewModel.toggleLayout() // Toggle back to true
+
+        // Assert
+        assertTrue(viewModel.isGridView.value)
+    }
+
+    @Test
+    fun `isGridView persists across folder navigation`() = runTest {
+        // Arrange
+        val rootEntries = listOf(FolderEntry("folder1", "folder1", null, 0))
+        val folderEntries = listOf(ImageEntry("folder1/image.jpg", "image.jpg", "folder1", "".toUri(), null, "image/jpeg"))
+
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(rootEntries))
+        `when`(fileRepository.getExtractedEntries("folder1")).thenReturn(flowOf(folderEntries))
+
+        viewModel = GalleryViewModel(fileRepository)
+        advanceUntilIdle()
+
+        viewModel.toggleLayout() // Switch to list view
+        advanceUntilIdle()
+
+        // Act - Navigate to folder
+        viewModel.navigateToFolder("folder1")
+        advanceUntilIdle()
+
+        // Assert - Layout preference should persist
+        assertEquals(false, viewModel.isGridView.value)
+    }
 }

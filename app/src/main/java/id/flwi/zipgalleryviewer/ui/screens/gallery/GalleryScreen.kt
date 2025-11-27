@@ -7,18 +7,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -51,9 +57,11 @@ import id.flwi.zipgalleryviewer.ui.theme.ZipGalleryViewerTheme
 fun GalleryScreen(
     uiState: GalleryUiState,
     isAtRoot: Boolean,
+    isGridView: Boolean,
     onFolderClick: (String) -> Unit,
     onImageClick: (String) -> Unit,
     onUpClick: () -> Unit,
+    onLayoutToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Handle system back button
@@ -73,6 +81,14 @@ fun GalleryScreen(
                                 contentDescription = "Navigate up"
                             )
                         }
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onLayoutToggle) {
+                        Icon(
+                            imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
+                            contentDescription = if (isGridView) "Switch to list view" else "Switch to grid view"
+                        )
                     }
                 }
             )
@@ -97,11 +113,19 @@ fun GalleryScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
-                    GalleryGrid(
-                        entries = uiState.entries,
-                        onFolderClick = onFolderClick,
-                        onImageClick = onImageClick
-                    )
+                    if (isGridView) {
+                        GalleryGrid(
+                            entries = uiState.entries,
+                            onFolderClick = onFolderClick,
+                            onImageClick = onImageClick
+                        )
+                    } else {
+                        GalleryList(
+                            entries = uiState.entries,
+                            onFolderClick = onFolderClick,
+                            onImageClick = onImageClick
+                        )
+                    }
                 }
             }
             is GalleryUiState.Error -> {
@@ -194,6 +218,118 @@ private fun FolderItem(
 }
 
 /**
+ * List layout displaying folders and images.
+ */
+@Composable
+private fun GalleryList(
+    entries: List<ExtractedEntry>,
+    onFolderClick: (String) -> Unit,
+    onImageClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        contentPadding = PaddingValues(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier.fillMaxSize()
+    ) {
+        items(entries, key = { it.path }) { entry ->
+            when (entry) {
+                is FolderEntry -> FolderListItem(
+                    folder = entry,
+                    onClick = { onFolderClick(entry.path) }
+                )
+                is ImageEntry -> ImageListItem(
+                    image = entry,
+                    onClick = { onImageClick(entry.path) }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Individual folder item in the gallery list.
+ */
+@Composable
+private fun FolderListItem(
+    folder: FolderEntry,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.secondaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Folder,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+        Text(
+            text = folder.name,
+            style = MaterialTheme.typography.bodyLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+/**
+ * Individual image item in the gallery list.
+ */
+@Composable
+private fun ImageListItem(
+    image: ImageEntry,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            AsyncImage(
+                model = image.thumbnailUri ?: image.fileUri,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+        Text(
+            text = image.name,
+            style = MaterialTheme.typography.bodyLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+/**
  * Individual image item in the gallery grid.
  */
 @Composable
@@ -259,9 +395,11 @@ private fun GalleryScreenPreview() {
                 )
             ),
             isAtRoot = true,
+            isGridView = true,
             onFolderClick = {},
             onImageClick = {},
-            onUpClick = {}
+            onUpClick = {},
+            onLayoutToggle = {}
         )
     }
 }
@@ -283,9 +421,11 @@ private fun GalleryScreenWithUpButtonPreview() {
                 )
             ),
             isAtRoot = false,
+            isGridView = true,
             onFolderClick = {},
             onImageClick = {},
-            onUpClick = {}
+            onUpClick = {},
+            onLayoutToggle = {}
         )
     }
 }
@@ -297,9 +437,11 @@ private fun GalleryScreenEmptyPreview() {
         GalleryScreen(
             uiState = GalleryUiState.Success(emptyList()),
             isAtRoot = true,
+            isGridView = true,
             onFolderClick = {},
             onImageClick = {},
-            onUpClick = {}
+            onUpClick = {},
+            onLayoutToggle = {}
         )
     }
 }
@@ -311,9 +453,43 @@ private fun GalleryScreenLoadingPreview() {
         GalleryScreen(
             uiState = GalleryUiState.Loading,
             isAtRoot = true,
+            isGridView = true,
             onFolderClick = {},
             onImageClick = {},
-            onUpClick = {}
+            onUpClick = {},
+            onLayoutToggle = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun GalleryScreenListViewPreview() {
+    ZipGalleryViewerTheme {
+        GalleryScreen(
+            uiState = GalleryUiState.Success(
+                entries = listOf(
+                    FolderEntry(
+                        path = "photos",
+                        name = "photos",
+                        parentPath = null,
+                        itemCount = 5
+                    ),
+                    ImageEntry(
+                        path = "image1.jpg",
+                        name = "Very Long Image Filename That Should Be Ellipsized.jpg",
+                        parentPath = null,
+                        fileUri = "".toUri(),
+                        mimeType = "image/jpeg"
+                    )
+                )
+            ),
+            isAtRoot = true,
+            isGridView = false,
+            onFolderClick = {},
+            onImageClick = {},
+            onUpClick = {},
+            onLayoutToggle = {}
         )
     }
 }

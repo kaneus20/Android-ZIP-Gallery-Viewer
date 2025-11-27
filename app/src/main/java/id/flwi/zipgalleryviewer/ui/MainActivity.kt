@@ -113,12 +113,15 @@ class MainActivity : ComponentActivity() {
                         if (showGallery) {
                             val galleryUiState by galleryViewModel.uiState.collectAsState()
                             val isAtRoot by galleryViewModel.isAtRoot.collectAsState()
+                            val isGridView by galleryViewModel.isGridView.collectAsState()
                             GalleryScreen(
                                 uiState = galleryUiState,
                                 isAtRoot = isAtRoot,
+                                isGridView = isGridView,
                                 onFolderClick = { path -> galleryViewModel.navigateToFolder(path) },
                                 onImageClick = { path -> /* TODO: Navigate to image viewer */ },
-                                onUpClick = { galleryViewModel.navigateUp() }
+                                onUpClick = { galleryViewModel.navigateUp() },
+                                onLayoutToggle = { galleryViewModel.toggleLayout() }
                             )
                         } else {
                             LoadScreen(
