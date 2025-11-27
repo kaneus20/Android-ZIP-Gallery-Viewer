@@ -51,14 +51,15 @@ class ImageViewerViewModel @Inject constructor(
      * Shows a toast message indicating the current image position.
      */
     private fun showPositionToast() {
-        viewModelScope.launch {
-            val current = _currentIndex.value + 1
-            val total = _images.value.size
-            Toast.makeText(
-                context,
-                " of ",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+        //Disabled for now to reduce annoyance
+        // viewModelScope.launch {
+        //     val current = _currentIndex.value + 1
+        //     val total = _images.value.size
+        //     Toast.makeText(
+        //         context,
+        //         " of ",
+        //         Toast.LENGTH_SHORT
+        //     ).show()
+        // }
     }
 }
