@@ -35,6 +35,9 @@ class GalleryViewModel @Inject constructor(
     private val _currentPath = MutableStateFlow("/")
     val currentPath: StateFlow<String> = _currentPath.asStateFlow()
 
+    private val _isAtRoot = MutableStateFlow(true)
+    val isAtRoot: StateFlow<Boolean> = _isAtRoot.asStateFlow()
+
     init {
         loadEntries("/")
     }
@@ -62,6 +65,7 @@ class GalleryViewModel @Inject constructor(
      */
     fun navigateToFolder(path: String) {
         _currentPath.value = path
+        _isAtRoot.value = (path == "/")
         loadEntries(path)
     }
 
@@ -72,8 +76,10 @@ class GalleryViewModel @Inject constructor(
         val current = _currentPath.value
         if (current != "/") {
             val parent = current.substringBeforeLast("/", "/")
-            _currentPath.value = parent.ifEmpty { "/" }
-            loadEntries(parent.ifEmpty { "/" })
+            val newPath = parent.ifEmpty { "/" }
+            _currentPath.value = newPath
+            _isAtRoot.value = (newPath == "/")
+            loadEntries(newPath)
         }
     }
 

@@ -187,4 +187,60 @@ class GalleryViewModelTest {
         assertTrue(state is GalleryUiState.Success)
         assertTrue((state as GalleryUiState.Success).entries.isEmpty())
     }
+
+    @Test
+    fun `isAtRoot is true when at root path`() = runTest {
+        // Arrange
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
+
+        // Act
+        viewModel = GalleryViewModel(fileRepository)
+        advanceUntilIdle()
+
+        // Assert
+        assertTrue(viewModel.isAtRoot.value)
+    }
+
+    @Test
+    fun `isAtRoot is false when in subfolder`() = runTest {
+        // Arrange
+        val rootEntries = listOf(FolderEntry("folder1", "folder1", null, 0))
+        val folderEntries = listOf(ImageEntry("folder1/image.jpg", "image.jpg", "folder1", "".toUri(), null, "image/jpeg"))
+
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(rootEntries))
+        `when`(fileRepository.getExtractedEntries("folder1")).thenReturn(flowOf(folderEntries))
+
+        viewModel = GalleryViewModel(fileRepository)
+        advanceUntilIdle()
+
+        // Act
+        viewModel.navigateToFolder("folder1")
+        advanceUntilIdle()
+
+        // Assert
+        assertEquals(false, viewModel.isAtRoot.value)
+    }
+
+    @Test
+    fun `isAtRoot becomes true when navigating back to root`() = runTest {
+        // Arrange
+        val rootEntries = listOf(FolderEntry("folder1", "folder1", null, 0))
+        val folderEntries = listOf(ImageEntry("folder1/image.jpg", "image.jpg", "folder1", "".toUri(), null, "image/jpeg"))
+
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(rootEntries))
+        `when`(fileRepository.getExtractedEntries("folder1")).thenReturn(flowOf(folderEntries))
+
+        viewModel = GalleryViewModel(fileRepository)
+        advanceUntilIdle()
+
+        viewModel.navigateToFolder("folder1")
+        advanceUntilIdle()
+
+        // Act
+        viewModel.navigateUp()
+        advanceUntilIdle()
+
+        // Assert
+        assertTrue(viewModel.isAtRoot.value)
+    }
 }

@@ -2,6 +2,7 @@ package id.flwi.zipgalleryviewer.ui.screens.gallery
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -14,6 +15,7 @@ import id.flwi.zipgalleryviewer.data.model.FolderEntry
 import id.flwi.zipgalleryviewer.data.model.ImageEntry
 import id.flwi.zipgalleryviewer.ui.theme.ZipGalleryViewerTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,8 +36,10 @@ class GalleryScreenTest {
             ZipGalleryViewerTheme {
                 GalleryScreen(
                     uiState = GalleryUiState.Loading,
+                    isAtRoot = true,
                     onFolderClick = {},
-                    onImageClick = {}
+                    onImageClick = {},
+                    onUpClick = {}
                 )
             }
         }
@@ -52,8 +56,10 @@ class GalleryScreenTest {
             ZipGalleryViewerTheme {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
+                    isAtRoot = true,
                     onFolderClick = {},
-                    onImageClick = {}
+                    onImageClick = {},
+                    onUpClick = {}
                 )
             }
         }
@@ -78,8 +84,10 @@ class GalleryScreenTest {
             ZipGalleryViewerTheme {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
+                    isAtRoot = true,
                     onFolderClick = {},
-                    onImageClick = {}
+                    onImageClick = {},
+                    onUpClick = {}
                 )
             }
         }
@@ -113,8 +121,10 @@ class GalleryScreenTest {
             ZipGalleryViewerTheme {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
+                    isAtRoot = true,
                     onFolderClick = {},
-                    onImageClick = {}
+                    onImageClick = {},
+                    onUpClick = {}
                 )
             }
         }
@@ -136,8 +146,10 @@ class GalleryScreenTest {
             ZipGalleryViewerTheme {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
+                    isAtRoot = true,
                     onFolderClick = { clickedPath = it },
-                    onImageClick = {}
+                    onImageClick = {},
+                    onUpClick = {}
                 )
             }
         }
@@ -161,8 +173,10 @@ class GalleryScreenTest {
             ZipGalleryViewerTheme {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
+                    isAtRoot = true,
                     onFolderClick = {},
-                    onImageClick = { clickedPath = it }
+                    onImageClick = { clickedPath = it },
+                    onUpClick = {}
                 )
             }
         }
@@ -184,8 +198,10 @@ class GalleryScreenTest {
             ZipGalleryViewerTheme {
                 GalleryScreen(
                     uiState = GalleryUiState.Error(errorMessage),
+                    isAtRoot = true,
                     onFolderClick = {},
-                    onImageClick = {}
+                    onImageClick = {},
+                    onUpClick = {}
                 )
             }
         }
@@ -207,13 +223,98 @@ class GalleryScreenTest {
             ZipGalleryViewerTheme {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
+                    isAtRoot = true,
                     onFolderClick = {},
-                    onImageClick = {}
+                    onImageClick = {},
+                    onUpClick = {}
                 )
             }
         }
 
         // Assert - Just verify the text node exists (ellipsizing is handled by Text composable)
         composeTestRule.onNodeWithText(longName, substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun atRoot_upButtonIsHidden() {
+        // Arrange & Act
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(emptyList()),
+                    isAtRoot = true,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onUpClick = {}
+                )
+            }
+        }
+
+        // Assert
+        composeTestRule.onNodeWithContentDescription("Navigate up")
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun notAtRoot_upButtonIsDisplayed() {
+        // Arrange & Act
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(emptyList()),
+                    isAtRoot = false,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onUpClick = {}
+                )
+            }
+        }
+
+        // Assert
+        composeTestRule.onNodeWithContentDescription("Navigate up")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun upButtonClick_triggersCallback() {
+        // Arrange
+        var upClicked = false
+
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(emptyList()),
+                    isAtRoot = false,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onUpClick = { upClicked = true }
+                )
+            }
+        }
+
+        // Act
+        composeTestRule.onNodeWithContentDescription("Navigate up").performClick()
+
+        // Assert
+        assertTrue(upClicked)
+    }
+
+    @Test
+    fun topAppBar_displaysGalleryTitle() {
+        // Arrange & Act
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(emptyList()),
+                    isAtRoot = true,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onUpClick = {}
+                )
+            }
+        }
+
+        // Assert
+        composeTestRule.onNodeWithText("Gallery").assertIsDisplayed()
     }
 }

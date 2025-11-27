@@ -112,10 +112,13 @@ class MainActivity : ComponentActivity() {
                     if (cleanupComplete) {
                         if (showGallery) {
                             val galleryUiState by galleryViewModel.uiState.collectAsState()
+                            val isAtRoot by galleryViewModel.isAtRoot.collectAsState()
                             GalleryScreen(
                                 uiState = galleryUiState,
+                                isAtRoot = isAtRoot,
                                 onFolderClick = { path -> galleryViewModel.navigateToFolder(path) },
-                                onImageClick = { path -> /* TODO: Navigate to image viewer */ }
+                                onImageClick = { path -> /* TODO: Navigate to image viewer */ },
+                                onUpClick = { galleryViewModel.navigateUp() }
                             )
                         } else {
                             LoadScreen(

@@ -1,5 +1,6 @@
 package id.flwi.zipgalleryviewer.ui.screens.gallery
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,12 +16,17 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,17 +46,45 @@ import id.flwi.zipgalleryviewer.ui.theme.ZipGalleryViewerTheme
 /**
  * Main gallery screen displaying extracted content in a grid layout.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GalleryScreen(
     uiState: GalleryUiState,
+    isAtRoot: Boolean,
     onFolderClick: (String) -> Unit,
     onImageClick: (String) -> Unit,
+    onUpClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
+    // Handle system back button
+    BackHandler(enabled = !isAtRoot) {
+        onUpClick()
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Gallery") },
+                navigationIcon = {
+                    if (!isAtRoot) {
+                        IconButton(onClick = onUpClick) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Navigate up"
+                            )
+                        }
+                    }
+                }
+            )
+        },
+        modifier = modifier
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
         when (uiState) {
             is GalleryUiState.Loading -> {
                 CircularProgressIndicator()
@@ -79,6 +113,7 @@ fun GalleryScreen(
                     modifier = Modifier.padding(16.dp)
                 )
             }
+        }
         }
     }
 }
@@ -223,8 +258,34 @@ private fun GalleryScreenPreview() {
                     )
                 )
             ),
+            isAtRoot = true,
             onFolderClick = {},
-            onImageClick = {}
+            onImageClick = {},
+            onUpClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun GalleryScreenWithUpButtonPreview() {
+    ZipGalleryViewerTheme {
+        GalleryScreen(
+            uiState = GalleryUiState.Success(
+                entries = listOf(
+                    ImageEntry(
+                        path = "photos/image1.jpg",
+                        name = "image1.jpg",
+                        parentPath = "photos",
+                        fileUri = "".toUri(),
+                        mimeType = "image/jpeg"
+                    )
+                )
+            ),
+            isAtRoot = false,
+            onFolderClick = {},
+            onImageClick = {},
+            onUpClick = {}
         )
     }
 }
@@ -235,8 +296,10 @@ private fun GalleryScreenEmptyPreview() {
     ZipGalleryViewerTheme {
         GalleryScreen(
             uiState = GalleryUiState.Success(emptyList()),
+            isAtRoot = true,
             onFolderClick = {},
-            onImageClick = {}
+            onImageClick = {},
+            onUpClick = {}
         )
     }
 }
@@ -247,8 +310,10 @@ private fun GalleryScreenLoadingPreview() {
     ZipGalleryViewerTheme {
         GalleryScreen(
             uiState = GalleryUiState.Loading,
+            isAtRoot = true,
             onFolderClick = {},
-            onImageClick = {}
+            onImageClick = {},
+            onUpClick = {}
         )
     }
 }
