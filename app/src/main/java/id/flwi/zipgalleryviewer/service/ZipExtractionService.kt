@@ -39,6 +39,7 @@ class ZipExtractionService @Inject constructor(
     companion object {
         private const val TAG = "ZipExtractionService"
         private const val MIN_FREE_SPACE_BYTES = 10 * 1024 * 1024 // 10 MB minimum
+        private const val EXTRACTED_DIR_NAME = "extracted"
     }
 
     /**
@@ -57,8 +58,14 @@ class ZipExtractionService @Inject constructor(
         try {
             Log.d(TAG, "Starting extraction for URI: $zipUri")
 
-            val outputDir = context.getExternalFilesDir(null)
+            val baseDir = context.getExternalFilesDir(null)
                 ?: throw IllegalStateException("External files directory not available")
+
+            val outputDir = File(baseDir, EXTRACTED_DIR_NAME).apply {
+                if (!exists()) {
+                    mkdirs()
+                }
+            }
 
             // Check available storage space
             checkStorageSpace(outputDir)

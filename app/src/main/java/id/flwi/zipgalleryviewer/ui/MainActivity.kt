@@ -21,7 +21,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import id.flwi.zipgalleryviewer.manager.FileSelectionModule
 import id.flwi.zipgalleryviewer.service.CleanupService
+import id.flwi.zipgalleryviewer.ui.screens.gallery.GalleryScreen
+import id.flwi.zipgalleryviewer.ui.screens.gallery.GalleryViewModel
 import id.flwi.zipgalleryviewer.ui.screens.load.LoadScreen
+import id.flwi.zipgalleryviewer.ui.screens.load.LoadUiState
 import id.flwi.zipgalleryviewer.ui.screens.load.LoadViewModel
 import id.flwi.zipgalleryviewer.ui.theme.ZipGalleryViewerTheme
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +33,7 @@ import javax.inject.Inject
 
 /**
  * Main entry point activity for the Zip Gallery Viewer application.
- * Handles app initialization, cleanup on launch, and file selection.
+ * Handles app initialization, cleanup on launch, and navigation between screens.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -47,9 +50,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             ZipGalleryViewerTheme {
                 var cleanupComplete by remember { mutableStateOf(false) }
+                var showGallery by remember { mutableStateOf(false) }
+
                 val loadViewModel: LoadViewModel = hiltViewModel()
+                val galleryViewModel: GalleryViewModel = hiltViewModel()
+
                 val shouldLaunchFilePicker by loadViewModel.shouldLaunchFilePicker.collectAsState()
                 val selectedFileUri by loadViewModel.selectedFileUri.collectAsState()
+                val loadUiState by loadViewModel.uiState.collectAsState()
                 val context = LocalContext.current
 
                 // Register file picker launcher
@@ -81,8 +89,13 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // Show toast when file is selected (removed - handled by extraction)
-                // Toast notification removed to avoid confusion during extraction
+                // Navigate to gallery on successful extraction
+                LaunchedEffect(loadUiState) {
+                    if (loadUiState is LoadUiState.Success) {
+                        showGallery = true
+                        galleryViewModel.refresh()
+                    }
+                }
 
                 // Perform cleanup on app launch
                 LaunchedEffect(Unit) {
@@ -92,21 +105,27 @@ class MainActivity : ComponentActivity() {
                     cleanupComplete = true
                 }
 
-                // Observe UI state
-                val uiState by loadViewModel.uiState.collectAsState()
-
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     if (cleanupComplete) {
-                        LoadScreen(
-                            uiState = uiState,
-                            onLoadClicked = { loadViewModel.onLoadClicked() },
-                            onDismissError = { loadViewModel.dismissError() },
-                            onPasswordSubmit = { password -> loadViewModel.onPasswordSubmit(password) },
-                            onPasswordCancel = { loadViewModel.onPasswordCancel() }
-                        )
+                        if (showGallery) {
+                            val galleryUiState by galleryViewModel.uiState.collectAsState()
+                            GalleryScreen(
+                                uiState = galleryUiState,
+                                onFolderClick = { path -> galleryViewModel.navigateToFolder(path) },
+                                onImageClick = { path -> /* TODO: Navigate to image viewer */ }
+                            )
+                        } else {
+                            LoadScreen(
+                                uiState = loadUiState,
+                                onLoadClicked = { loadViewModel.onLoadClicked() },
+                                onDismissError = { loadViewModel.dismissError() },
+                                onPasswordSubmit = { password -> loadViewModel.onPasswordSubmit(password) },
+                                onPasswordCancel = { loadViewModel.onPasswordCancel() }
+                            )
+                        }
                     }
                 }
             }

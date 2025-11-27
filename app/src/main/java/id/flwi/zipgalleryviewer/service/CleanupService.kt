@@ -15,32 +15,35 @@ class CleanupService @Inject constructor(
 ) {
     companion object {
         private const val TAG = "CleanupService"
+        private const val EXTRACTED_DIR_NAME = "extracted"
     }
 
     /**
-     * Recursively deletes all content from the app's external files directory.
+     * Recursively deletes all content from the app's extracted files directory.
      * This method is called on app launch to ensure no data persists from previous sessions.
      *
      * @return true if cleanup was successful or directory was already empty, false if errors occurred
      */
     fun clearAllExtractedContent(): Boolean {
         return try {
-            val extractedDir = context.getExternalFilesDir(null)
-            
-            if (extractedDir == null) {
+            val baseDir = context.getExternalFilesDir(null)
+
+            if (baseDir == null) {
                 Log.w(TAG, "External files directory is null")
                 return true // Nothing to clean
             }
 
+            val extractedDir = File(baseDir, EXTRACTED_DIR_NAME)
+
             if (!extractedDir.exists()) {
-                Log.d(TAG, "External files directory does not exist, nothing to clean")
+                Log.d(TAG, "Extracted directory does not exist, nothing to clean")
                 return true
             }
 
             Log.d(TAG, "Starting cleanup of: ${extractedDir.absolutePath}")
-            
+
             val deleted = deleteRecursively(extractedDir)
-            
+
             if (deleted) {
                 Log.i(TAG, "Successfully cleaned all extracted content")
             } else {
@@ -49,7 +52,7 @@ class CleanupService @Inject constructor(
                     Exception("Cleanup incomplete for: ${extractedDir.absolutePath}")
                 )
             }
-            
+
             deleted
         } catch (e: Exception) {
             Log.e(TAG, "Error during cleanup", e)
@@ -71,7 +74,7 @@ class CleanupService @Inject constructor(
         }
 
         var success = true
-        
+
         directory.listFiles()?.forEach { file ->
             if (file.isDirectory) {
                 // Recursively delete directory contents first
@@ -108,7 +111,7 @@ class CleanupService @Inject constructor(
         }
 
         var success = true
-        
+
         directory.listFiles()?.forEach { file ->
             if (file.isDirectory) {
                 if (!deleteDirectoryContents(file)) {
