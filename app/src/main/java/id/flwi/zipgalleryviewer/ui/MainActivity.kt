@@ -21,11 +21,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import id.flwi.zipgalleryviewer.manager.FileSelectionModule
 import id.flwi.zipgalleryviewer.service.CleanupService
+import id.flwi.zipgalleryviewer.data.model.ImageEntry
 import id.flwi.zipgalleryviewer.ui.screens.gallery.GalleryScreen
 import id.flwi.zipgalleryviewer.ui.screens.gallery.GalleryViewModel
+import id.flwi.zipgalleryviewer.ui.screens.gallery.GalleryUiState
 import id.flwi.zipgalleryviewer.ui.screens.load.LoadScreen
 import id.flwi.zipgalleryviewer.ui.screens.load.LoadUiState
 import id.flwi.zipgalleryviewer.ui.screens.load.LoadViewModel
+import id.flwi.zipgalleryviewer.ui.screens.viewer.ImageViewerScreen
+import id.flwi.zipgalleryviewer.ui.screens.viewer.ImageViewerViewModel
 import id.flwi.zipgalleryviewer.ui.theme.ZipGalleryViewerTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -51,9 +55,12 @@ class MainActivity : ComponentActivity() {
             ZipGalleryViewerTheme {
                 var cleanupComplete by remember { mutableStateOf(false) }
                 var showGallery by remember { mutableStateOf(false) }
+                var showImageViewer by remember { mutableStateOf(false) }
+                var selectedImagePath by remember { mutableStateOf<String?>(null) }
 
                 val loadViewModel: LoadViewModel = hiltViewModel()
                 val galleryViewModel: GalleryViewModel = hiltViewModel()
+                val imageViewerViewModel: ImageViewerViewModel = hiltViewModel()
 
                 val shouldLaunchFilePicker by loadViewModel.shouldLaunchFilePicker.collectAsState()
                 val selectedFileUri by loadViewModel.selectedFileUri.collectAsState()
@@ -110,16 +117,38 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     if (cleanupComplete) {
-                        if (showGallery) {
+                        if (showImageViewer) {
+                            ImageViewerScreen(
+                                viewModel = imageViewerViewModel,
+                                onBackPressed = {
+                                    showImageViewer = false
+                                    selectedImagePath = null
+                                }
+                            )
+                        } else if (showGallery) {
                             val galleryUiState by galleryViewModel.uiState.collectAsState()
                             val isAtRoot by galleryViewModel.isAtRoot.collectAsState()
                             val isGridView by galleryViewModel.isGridView.collectAsState()
+
+                            // Handle image viewer navigation
+                            LaunchedEffect(selectedImagePath, galleryUiState) {
+                                if (selectedImagePath != null && galleryUiState is GalleryUiState.Success) {
+                                    val state = galleryUiState as GalleryUiState.Success
+                                    val images = state.entries.filterIsInstance<ImageEntry>()
+                                    val selectedIndex = images.indexOfFirst { it.path == selectedImagePath }
+                                    if (selectedIndex >= 0) {
+                                        imageViewerViewModel.initialize(images, selectedIndex)
+                                        showImageViewer = true
+                                    }
+                                }
+                            }
+
                             GalleryScreen(
                                 uiState = galleryUiState,
                                 isAtRoot = isAtRoot,
                                 isGridView = isGridView,
                                 onFolderClick = { path -> galleryViewModel.navigateToFolder(path) },
-                                onImageClick = { path -> /* TODO: Navigate to image viewer */ },
+                                onImageClick = { path -> selectedImagePath = path },
                                 onUpClick = { galleryViewModel.navigateUp() },
                                 onLayoutToggle = { galleryViewModel.toggleLayout() }
                             )
