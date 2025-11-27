@@ -4,6 +4,8 @@ import androidx.core.net.toUri
 import id.flwi.zipgalleryviewer.data.FileRepository
 import id.flwi.zipgalleryviewer.data.model.FolderEntry
 import id.flwi.zipgalleryviewer.data.model.ImageEntry
+import id.flwi.zipgalleryviewer.manager.NotificationManager
+import id.flwi.zipgalleryviewer.service.CleanupService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -14,6 +16,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -30,6 +33,12 @@ class GalleryViewModelTest {
 
     @Mock
     private lateinit var fileRepository: FileRepository
+
+    @Mock
+    private lateinit var cleanupService: CleanupService
+
+    @Mock
+    private lateinit var notificationManager: NotificationManager
 
     private lateinit var viewModel: GalleryViewModel
 
@@ -56,7 +65,7 @@ class GalleryViewModelTest {
         `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(expectedEntries))
 
         // Act
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         // Assert
@@ -78,7 +87,7 @@ class GalleryViewModelTest {
         `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(rootEntries))
         `when`(fileRepository.getExtractedEntries("folder1")).thenReturn(flowOf(folderEntries))
 
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         // Act
@@ -102,7 +111,7 @@ class GalleryViewModelTest {
         `when`(fileRepository.getExtractedEntries("folder1/sub")).thenReturn(flowOf(subFolderEntries))
         `when`(fileRepository.getExtractedEntries("folder1")).thenReturn(flowOf(emptyList()))
 
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         viewModel.navigateToFolder("folder1/sub")
@@ -122,7 +131,7 @@ class GalleryViewModelTest {
         val rootEntries = listOf(FolderEntry("folder1", "folder1", null, 0))
         `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(rootEntries))
 
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         // Act
@@ -146,7 +155,7 @@ class GalleryViewModelTest {
             .thenReturn(flowOf(initialEntries))
             .thenReturn(flowOf(refreshedEntries))
 
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         // Act
@@ -164,7 +173,7 @@ class GalleryViewModelTest {
         `when`(fileRepository.getExtractedEntries("/")).thenThrow(exception)
 
         // Act
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         // Assert
@@ -179,7 +188,7 @@ class GalleryViewModelTest {
         `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
 
         // Act
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         // Assert
@@ -194,7 +203,7 @@ class GalleryViewModelTest {
         `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
 
         // Act
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         // Assert
@@ -210,7 +219,7 @@ class GalleryViewModelTest {
         `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(rootEntries))
         `when`(fileRepository.getExtractedEntries("folder1")).thenReturn(flowOf(folderEntries))
 
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         // Act
@@ -230,7 +239,7 @@ class GalleryViewModelTest {
         `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(rootEntries))
         `when`(fileRepository.getExtractedEntries("folder1")).thenReturn(flowOf(folderEntries))
 
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         viewModel.navigateToFolder("folder1")
@@ -250,7 +259,7 @@ class GalleryViewModelTest {
         `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
 
         // Act
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         // Assert
@@ -261,7 +270,7 @@ class GalleryViewModelTest {
     fun `toggleLayout switches isGridView from true to false`() = runTest {
         // Arrange
         `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         // Act
@@ -275,7 +284,7 @@ class GalleryViewModelTest {
     fun `toggleLayout switches isGridView from false to true`() = runTest {
         // Arrange
         `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         viewModel.toggleLayout() // Set to false
@@ -296,7 +305,7 @@ class GalleryViewModelTest {
         `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(rootEntries))
         `when`(fileRepository.getExtractedEntries("folder1")).thenReturn(flowOf(folderEntries))
 
-        viewModel = GalleryViewModel(fileRepository)
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
         advanceUntilIdle()
 
         viewModel.toggleLayout() // Switch to list view
@@ -308,5 +317,91 @@ class GalleryViewModelTest {
 
         // Assert - Layout preference should persist
         assertEquals(false, viewModel.isGridView.value)
+    }
+
+    @Test
+    fun `onExitRequest sets showExitDialog to true`() = runTest {
+        // Arrange
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
+        advanceUntilIdle()
+
+        // Act
+        viewModel.onExitRequest()
+
+        // Assert
+        assertTrue(viewModel.showExitDialog.value)
+    }
+
+    @Test
+    fun `onExitDismiss sets showExitDialog to false`() = runTest {
+        // Arrange
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
+        advanceUntilIdle()
+
+        viewModel.onExitRequest() // Show dialog first
+
+        // Act
+        viewModel.onExitDismiss()
+
+        // Assert
+        assertFalse(viewModel.showExitDialog.value)
+    }
+
+    @Test
+    fun `onExitConfirm calls cleanupService and notificationManager`() = runTest {
+        // Arrange
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
+        advanceUntilIdle()
+
+        // Act
+        viewModel.onExitConfirm()
+        advanceUntilIdle()
+
+        // Assert
+        verify(cleanupService).clearAllExtractedContent()
+        verify(notificationManager).hidePersistentExitNotification()
+    }
+
+    @Test
+    fun `onExitConfirm sets showExitDialog to false`() = runTest {
+        // Arrange
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
+        advanceUntilIdle()
+
+        viewModel.onExitRequest() // Show dialog first
+
+        // Act
+        viewModel.onExitConfirm()
+        advanceUntilIdle()
+
+        // Assert
+        assertFalse(viewModel.showExitDialog.value)
+    }
+
+    @Test
+    fun `onExitConfirm emits finishActivityEvent`() = runTest {
+        // Arrange
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
+        advanceUntilIdle()
+
+        var eventReceived = false
+        val job = kotlinx.coroutines.launch {
+            viewModel.finishActivityEvent.collect {
+                eventReceived = true
+            }
+        }
+
+        // Act
+        viewModel.onExitConfirm()
+        advanceUntilIdle()
+
+        // Assert
+        assertTrue(eventReceived)
+        job.cancel()
     }
 }

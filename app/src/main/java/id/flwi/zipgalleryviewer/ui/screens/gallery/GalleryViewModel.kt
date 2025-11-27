@@ -5,8 +5,14 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.flwi.zipgalleryviewer.data.FileRepository
 import id.flwi.zipgalleryviewer.data.model.ExtractedEntry
+import id.flwi.zipgalleryviewer.manager.NotificationManager
+import id.flwi.zipgalleryviewer.service.CleanupService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,7 +32,9 @@ sealed class GalleryUiState {
  */
 @HiltViewModel
 class GalleryViewModel @Inject constructor(
-    private val fileRepository: FileRepository
+    private val fileRepository: FileRepository,
+    private val cleanupService: CleanupService,
+    private val notificationManager: NotificationManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<GalleryUiState>(GalleryUiState.Loading)
@@ -40,6 +48,12 @@ class GalleryViewModel @Inject constructor(
 
     private val _isGridView = MutableStateFlow(true)
     val isGridView: StateFlow<Boolean> = _isGridView.asStateFlow()
+
+    private val _showExitDialog = MutableStateFlow(false)
+    val showExitDialog: StateFlow<Boolean> = _showExitDialog.asStateFlow()
+
+    private val _finishActivityEvent = MutableSharedFlow<Unit>()
+    val finishActivityEvent: SharedFlow<Unit> = _finishActivityEvent.asSharedFlow()
 
     init {
         loadEntries("/")
@@ -98,5 +112,36 @@ class GalleryViewModel @Inject constructor(
      */
     fun toggleLayout() {
         _isGridView.value = !_isGridView.value
+    }
+
+    /**
+     * Initiates the exit flow by showing the confirmation dialog.
+     */
+    fun onExitRequest() {
+        _showExitDialog.value = true
+    }
+
+    /**
+     * Dismisses the exit confirmation dialog.
+     */
+    fun onExitDismiss() {
+        _showExitDialog.value = false
+    }
+
+    /**
+     * Confirms the exit action - cleans up data and closes the app.
+     */
+    fun onExitConfirm() {
+        _showExitDialog.value = false
+        viewModelScope.launch(Dispatchers.IO) {
+            // Clean up all extracted content
+            cleanupService.clearAllExtractedContent()
+
+            // Hide the persistent notification
+            notificationManager.hidePersistentExitNotification()
+
+            // Signal the activity to finish
+            _finishActivityEvent.emit(Unit)
+        }
     }
 }

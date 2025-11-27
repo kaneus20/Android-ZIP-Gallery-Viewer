@@ -23,6 +23,7 @@ import id.flwi.zipgalleryviewer.manager.FileSelectionModule
 import id.flwi.zipgalleryviewer.manager.NotificationManager
 import id.flwi.zipgalleryviewer.service.CleanupService
 import id.flwi.zipgalleryviewer.data.model.ImageEntry
+import id.flwi.zipgalleryviewer.ui.components.ExitConfirmationDialog
 import id.flwi.zipgalleryviewer.ui.screens.gallery.GalleryScreen
 import id.flwi.zipgalleryviewer.ui.screens.gallery.GalleryViewModel
 import id.flwi.zipgalleryviewer.ui.screens.gallery.GalleryUiState
@@ -55,9 +56,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Check if the activity was launched from the exit notification
-        handleExitIntent(intent)
-
         setContent {
             ZipGalleryViewerTheme {
                 var cleanupComplete by remember { mutableStateOf(false) }
@@ -72,7 +70,22 @@ class MainActivity : ComponentActivity() {
                 val shouldLaunchFilePicker by loadViewModel.shouldLaunchFilePicker.collectAsState()
                 val selectedFileUri by loadViewModel.selectedFileUri.collectAsState()
                 val loadUiState by loadViewModel.uiState.collectAsState()
+                val showExitDialog by galleryViewModel.showExitDialog.collectAsState()
                 val context = LocalContext.current
+
+                // Handle exit intent from notification
+                LaunchedEffect(intent) {
+                    if (intent?.action == NotificationManager.ACTION_EXIT_APP) {
+                        galleryViewModel.onExitRequest()
+                    }
+                }
+
+                // Listen for finish activity event
+                LaunchedEffect(Unit) {
+                    galleryViewModel.finishActivityEvent.collect {
+                        finish()
+                    }
+                }
 
                 // Register file picker launcher
                 val filePickerLauncher = rememberLauncherForActivityResult(
@@ -161,8 +174,17 @@ class MainActivity : ComponentActivity() {
                                 onFolderClick = { path -> galleryViewModel.navigateToFolder(path) },
                                 onImageClick = { path -> selectedImagePath = path },
                                 onUpClick = { galleryViewModel.navigateUp() },
-                                onLayoutToggle = { galleryViewModel.toggleLayout() }
+                                onLayoutToggle = { galleryViewModel.toggleLayout() },
+                                onExitRequest = { galleryViewModel.onExitRequest() }
                             )
+
+                            // Show exit confirmation dialog
+                            if (showExitDialog) {
+                                ExitConfirmationDialog(
+                                    onConfirm = { galleryViewModel.onExitConfirm() },
+                                    onDismiss = { galleryViewModel.onExitDismiss() }
+                                )
+                            }
                         } else {
                             LoadScreen(
                                 uiState = loadUiState,
@@ -180,17 +202,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleExitIntent(intent)
-    }
-
-    /**
-     * Handles the exit intent from the persistent notification.
-     * This will be expanded in Story 3.2 to show the exit confirmation dialog.
-     */
-    private fun handleExitIntent(intent: Intent?) {
-        if (intent?.action == NotificationManager.ACTION_EXIT_APP) {
-            // TODO: Story 3.2 - Show exit confirmation dialog
-            // For now, this just brings the app to the foreground
-        }
+        setIntent(intent)
     }
 }

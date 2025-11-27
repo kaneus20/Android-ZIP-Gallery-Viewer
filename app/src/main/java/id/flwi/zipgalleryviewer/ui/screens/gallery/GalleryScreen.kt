@@ -62,11 +62,17 @@ fun GalleryScreen(
     onImageClick: (String) -> Unit,
     onUpClick: () -> Unit,
     onLayoutToggle: () -> Unit,
+    onExitRequest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Handle system back button
     BackHandler(enabled = !isAtRoot) {
         onUpClick()
+    }
+
+    // Handle system back button at root - trigger exit flow
+    BackHandler(enabled = isAtRoot) {
+        onExitRequest()
     }
 
     Scaffold(
@@ -399,7 +405,8 @@ private fun GalleryScreenPreview() {
             onFolderClick = {},
             onImageClick = {},
             onUpClick = {},
-            onLayoutToggle = {}
+            onLayoutToggle = {},
+            onExitRequest = {}
         )
     }
 }
@@ -425,7 +432,8 @@ private fun GalleryScreenWithUpButtonPreview() {
             onFolderClick = {},
             onImageClick = {},
             onUpClick = {},
-            onLayoutToggle = {}
+            onLayoutToggle = {},
+            onExitRequest = {}
         )
     }
 }
@@ -441,7 +449,8 @@ private fun GalleryScreenEmptyPreview() {
             onFolderClick = {},
             onImageClick = {},
             onUpClick = {},
-            onLayoutToggle = {}
+            onLayoutToggle = {},
+            onExitRequest = {}
         )
     }
 }
@@ -457,7 +466,8 @@ private fun GalleryScreenLoadingPreview() {
             onFolderClick = {},
             onImageClick = {},
             onUpClick = {},
-            onLayoutToggle = {}
+            onLayoutToggle = {},
+            onExitRequest = {}
         )
     }
 }
@@ -489,7 +499,8 @@ private fun GalleryScreenListViewPreview() {
             onFolderClick = {},
             onImageClick = {},
             onUpClick = {},
-            onLayoutToggle = {}
+            onLayoutToggle = {},
+            onExitRequest = {}
         )
     }
 }
