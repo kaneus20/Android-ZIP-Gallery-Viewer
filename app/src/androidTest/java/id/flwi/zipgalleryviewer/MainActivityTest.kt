@@ -1,5 +1,6 @@
 package id.flwi.zipgalleryviewer
 
+import android.view.WindowManager
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -34,7 +35,7 @@ class MainActivityTest {
     @Before
     fun setup() {
         hiltRule.inject()
-        
+
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         testDirectory = context.getExternalFilesDir(null)!!
     }
@@ -59,25 +60,25 @@ class MainActivityTest {
         val testFile1 = File(testDirectory, "old_file.txt")
         val testSubDir = File(testDirectory, "old_directory")
         val testFile2 = File(testSubDir, "nested_file.txt")
-        
+
         testSubDir.mkdirs()
         testFile1.writeText("old content")
         testFile2.writeText("nested content")
-        
+
         // Verify files exist before launching
         assert(testFile1.exists())
         assert(testFile2.exists())
         assert(testSubDir.exists())
-        
+
         // When: App is launched (MainActivity is created by the rule)
         // Wait for UI to be ready
         composeTestRule.waitForIdle()
-        
+
         // Then: Old files should be deleted
         assert(!testFile1.exists()) { "Test file 1 should be deleted" }
         assert(!testFile2.exists()) { "Test file 2 should be deleted" }
         assert(!testSubDir.exists()) { "Test subdirectory should be deleted" }
-        
+
         // And: Load screen should be displayed
         composeTestRule
             .onNodeWithContentDescription("Load")
@@ -88,10 +89,10 @@ class MainActivityTest {
     fun app_handles_empty_directory_on_startup() {
         // Given: Directory is already empty
         testDirectory.listFiles()?.forEach { it.deleteRecursively() }
-        
+
         // When: App is launched
         composeTestRule.waitForIdle()
-        
+
         // Then: Load screen should still be displayed
         composeTestRule
             .onNodeWithContentDescription("Load")
@@ -104,27 +105,27 @@ class MainActivityTest {
         val images = File(testDirectory, "images")
         val vacation = File(images, "vacation")
         val documents = File(testDirectory, "documents")
-        
+
         images.mkdirs()
         vacation.mkdirs()
         documents.mkdirs()
-        
+
         val img1 = File(vacation, "photo1.jpg")
         val img2 = File(images, "photo2.jpg")
         val doc1 = File(documents, "readme.txt")
-        
+
         img1.writeText("image1")
         img2.writeText("image2")
         doc1.writeText("document")
-        
+
         // Verify structure exists
         assert(img1.exists())
         assert(img2.exists())
         assert(doc1.exists())
-        
+
         // When: App is launched
         composeTestRule.waitForIdle()
-        
+
         // Then: All content should be cleaned
         assert(!img1.exists())
         assert(!img2.exists())
@@ -132,10 +133,23 @@ class MainActivityTest {
         assert(!vacation.exists())
         assert(!images.exists())
         assert(!documents.exists())
-        
+
         // And: Load screen is displayed
         composeTestRule
             .onNodeWithContentDescription("Load")
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun window_has_flag_secure_set() {
+        // When: Activity is created
+        composeTestRule.waitForIdle()
+
+        // Then: FLAG_SECURE should be set on the window
+        val activity = composeTestRule.activity
+        val flags = activity.window.attributes.flags
+        val hasFlagSecure = (flags and WindowManager.LayoutParams.FLAG_SECURE) != 0
+
+        assert(hasFlagSecure) { "FLAG_SECURE should be set to prevent screenshots and hide content in recent apps" }
     }
 }
