@@ -14,6 +14,37 @@ The core value proposition is **privacy and security through ephemerality**.
 - **Simple, intuitive gallery** - Easy navigation through folders and images within archives
 - **Private sandboxed storage** - Content never exposed to public storage or other apps
 - **Offline-first** - No network connectivity required, fully local operation
+- **Persistent exit notification** - Tap notification to quickly initiate app closure and data cleanup
+- **Exit confirmation dialog** - Prevents accidental data loss with confirmation before cleanup
+- **Randomize image order** - Toggle between alphabetical and randomized image viewing while keeping folders organized
+
+## Recent Implementations
+
+### Privacy & Session Management
+
+**Persistent Notification**
+- Ongoing notification displayed after archive extraction
+- Tap notification to bring app to foreground and initiate exit flow
+- Notification channel created at application startup
+- Automatically dismissed on app exit
+
+**Exit Confirmation & Cleanup**
+- Exit confirmation dialog triggered by back button at root or notification tap
+- Two-button dialog: "Cancel" to dismiss, "Yes, clear and exit" to proceed
+- CleanupService clears all extracted content on confirmation
+- Notification dismissed before app closure
+- Activity programmatically finished after cleanup
+
+### Enhanced Gallery Features
+
+**Randomize Image Order**
+- Shuffle button in TopAppBar alongside grid/list toggle
+- Folders always displayed first in alphabetical order
+- Images randomized when shuffle is active, alphabetical when inactive
+- Visual feedback: filled shuffle icon with primary color when active, outlined with default color when inactive
+- Randomized order persists across folder navigation within session
+- Full-screen image viewer navigation follows randomized sequence
+- Toggle functionality implemented with StateFlow state management
 
 ## Development Setup
 
@@ -76,8 +107,6 @@ This application follows MVVM architecture with:
 - **Hilt** for dependency injection
 - **StateFlow** for reactive state management
 - **7-Zip-JBinding-4Android** for archive extraction
-
-For detailed architecture documentation, see `docs/architecture.md`.
 
 ## License
 
