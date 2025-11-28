@@ -3,6 +3,7 @@ package id.flwi.zipgalleryviewer.ui.screens.gallery
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -63,6 +65,7 @@ fun GalleryScreen(
     isRandomized: Boolean,
     onFolderClick: (String) -> Unit,
     onImageClick: (String) -> Unit,
+    onImageLongPress: (ImageEntry) -> Unit,
     onUpClick: () -> Unit,
     onLayoutToggle: () -> Unit,
     onRandomizeToggle: () -> Unit,
@@ -134,13 +137,15 @@ fun GalleryScreen(
                         GalleryGrid(
                             entries = uiState.entries,
                             onFolderClick = onFolderClick,
-                            onImageClick = onImageClick
+                            onImageClick = onImageClick,
+                            onImageLongPress = onImageLongPress
                         )
                     } else {
                         GalleryList(
                             entries = uiState.entries,
                             onFolderClick = onFolderClick,
-                            onImageClick = onImageClick
+                            onImageClick = onImageClick,
+                            onImageLongPress = onImageLongPress
                         )
                     }
                 }
@@ -167,6 +172,7 @@ private fun GalleryGrid(
     entries: List<ExtractedEntry>,
     onFolderClick: (String) -> Unit,
     onImageClick: (String) -> Unit,
+    onImageLongPress: (ImageEntry) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
@@ -184,7 +190,8 @@ private fun GalleryGrid(
                 )
                 is ImageEntry -> ImageItem(
                     image = entry,
-                    onClick = { onImageClick(entry.path) }
+                    onClick = { onImageClick(entry.path) },
+                    onLongPress = { onImageLongPress(entry) }
                 )
             }
         }
@@ -242,6 +249,7 @@ private fun GalleryList(
     entries: List<ExtractedEntry>,
     onFolderClick: (String) -> Unit,
     onImageClick: (String) -> Unit,
+    onImageLongPress: (ImageEntry) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -257,7 +265,8 @@ private fun GalleryList(
                 )
                 is ImageEntry -> ImageListItem(
                     image = entry,
-                    onClick = { onImageClick(entry.path) }
+                    onClick = { onImageClick(entry.path) },
+                    onLongPress = { onImageLongPress(entry) }
                 )
             }
         }
@@ -312,12 +321,18 @@ private fun FolderListItem(
 private fun ImageListItem(
     image: ImageEntry,
     onClick: () -> Unit,
+    onLongPress: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { onClick() },
+                    onLongPress = { onLongPress() }
+                )
+            }
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -353,12 +368,18 @@ private fun ImageListItem(
 private fun ImageItem(
     image: ImageEntry,
     onClick: () -> Unit,
+    onLongPress: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { onClick() },
+                    onLongPress = { onLongPress() }
+                )
+            },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -416,6 +437,7 @@ private fun GalleryScreenPreview() {
             isRandomized = false,
             onFolderClick = {},
             onImageClick = {},
+            onImageLongPress = {},
             onUpClick = {},
             onLayoutToggle = {},
             onRandomizeToggle = {},
@@ -445,6 +467,7 @@ private fun GalleryScreenWithUpButtonPreview() {
             isRandomized = false,
             onFolderClick = {},
             onImageClick = {},
+            onImageLongPress = {},
             onUpClick = {},
             onLayoutToggle = {},
             onRandomizeToggle = {},
@@ -464,6 +487,7 @@ private fun GalleryScreenEmptyPreview() {
             isRandomized = false,
             onFolderClick = {},
             onImageClick = {},
+            onImageLongPress = {},
             onUpClick = {},
             onLayoutToggle = {},
             onRandomizeToggle = {},
@@ -483,6 +507,7 @@ private fun GalleryScreenLoadingPreview() {
             isRandomized = false,
             onFolderClick = {},
             onImageClick = {},
+            onImageLongPress = {},
             onUpClick = {},
             onLayoutToggle = {},
             onRandomizeToggle = {},
@@ -518,6 +543,7 @@ private fun GalleryScreenListViewPreview() {
             isRandomized = false,
             onFolderClick = {},
             onImageClick = {},
+            onImageLongPress = {},
             onUpClick = {},
             onLayoutToggle = {},
             onRandomizeToggle = {},

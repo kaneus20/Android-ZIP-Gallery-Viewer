@@ -39,7 +39,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -61,7 +61,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -91,7 +91,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -130,7 +130,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -157,7 +157,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = { clickedPath = it },
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -213,7 +213,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -240,7 +240,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -261,7 +261,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -283,7 +283,7 @@ class GalleryScreenTest {
                     isAtRoot = false,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -307,7 +307,7 @@ class GalleryScreenTest {
                     isAtRoot = false,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = { upClicked = true },
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -331,7 +331,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -352,7 +352,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -374,7 +374,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = false,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -398,7 +398,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = { layoutToggled = true },\n                    onExitRequest = {}
                 )
@@ -428,7 +428,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = false,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},\n                    onExitRequest = {}
                 )
@@ -452,7 +452,7 @@ class GalleryScreenTest {
                     isAtRoot = true,
                     isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},
                     onExitRequest = { exitRequested = true }
@@ -480,7 +480,7 @@ class GalleryScreenTest {
                     isGridView = true,
                     isRandomized = false,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},
                     onRandomizeToggle = {},
@@ -504,7 +504,7 @@ class GalleryScreenTest {
                     isGridView = true,
                     isRandomized = true,
                     onFolderClick = {},
-                    onImageClick = {},
+                    onImageClick = {},\n                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},
                     onRandomizeToggle = {},
@@ -531,6 +531,7 @@ class GalleryScreenTest {
                     isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
+                    onImageLongPress = {},
                     onUpClick = {},
                     onLayoutToggle = {},
                     onRandomizeToggle = { randomizeToggled = true },
@@ -544,5 +545,71 @@ class GalleryScreenTest {
 
         // Assert
         assertTrue(randomizeToggled)
+    }
+
+    @Test
+    fun imageLongPress_triggersCallback() {
+        // Arrange
+        var longPressedImage: ImageEntry? = null
+        val testImage = ImageEntry("test.jpg", "test.jpg", null, "".toUri(), null, "image/jpeg")
+
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(listOf(testImage)),
+                    isAtRoot = true,
+                    isGridView = true,
+                    isRandomized = false,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onImageLongPress = { longPressedImage = it },
+                    onUpClick = {},
+                    onLayoutToggle = {},
+                    onRandomizeToggle = {},
+                    onExitRequest = {}
+                )
+            }
+        }
+
+        // Act
+        composeTestRule.onNodeWithContentDescription("test.jpg").performTouchInput {
+            longClick()
+        }
+
+        // Assert
+        assertEquals(testImage, longPressedImage)
+    }
+
+    @Test
+    fun folderLongPress_doesNotTriggerCallback() {
+        // Arrange
+        var longPressTriggered = false
+        val testFolder = FolderEntry("folder", "folder", null, 1)
+
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(listOf(testFolder)),
+                    isAtRoot = true,
+                    isGridView = true,
+                    isRandomized = false,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onImageLongPress = { longPressTriggered = true },
+                    onUpClick = {},
+                    onLayoutToggle = {},
+                    onRandomizeToggle = {},
+                    onExitRequest = {}
+                )
+            }
+        }
+
+        // Act
+        composeTestRule.onNodeWithText("folder").performTouchInput {
+            longClick()
+        }
+
+        // Assert - Folder long press should not trigger image long press callback
+        assertFalse(longPressTriggered)
     }
 }

@@ -25,6 +25,7 @@ import id.flwi.zipgalleryviewer.manager.NotificationManager
 import id.flwi.zipgalleryviewer.service.CleanupService
 import id.flwi.zipgalleryviewer.data.model.ImageEntry
 import id.flwi.zipgalleryviewer.ui.components.ExitConfirmationDialog
+import id.flwi.zipgalleryviewer.ui.components.ShareConfirmationDialog
 import id.flwi.zipgalleryviewer.ui.screens.gallery.GalleryScreen
 import id.flwi.zipgalleryviewer.ui.screens.gallery.GalleryViewModel
 import id.flwi.zipgalleryviewer.ui.screens.gallery.GalleryUiState
@@ -79,6 +80,7 @@ class MainActivity : ComponentActivity() {
                 val selectedFileUri by loadViewModel.selectedFileUri.collectAsState()
                 val loadUiState by loadViewModel.uiState.collectAsState()
                 val showExitDialog by galleryViewModel.showExitDialog.collectAsState()
+                val showShareDialog by galleryViewModel.showShareDialog.collectAsState()
                 val context = LocalContext.current
 
                 // Handle exit intent from notification
@@ -183,6 +185,7 @@ class MainActivity : ComponentActivity() {
                                 isRandomized = isRandomized,
                                 onFolderClick = { path -> galleryViewModel.navigateToFolder(path) },
                                 onImageClick = { path -> selectedImagePath = path },
+                                onImageLongPress = { image -> galleryViewModel.onImageLongPressed(image) },
                                 onUpClick = { galleryViewModel.navigateUp() },
                                 onLayoutToggle = { galleryViewModel.toggleLayout() },
                                 onRandomizeToggle = { galleryViewModel.toggleRandomize() },
@@ -194,6 +197,14 @@ class MainActivity : ComponentActivity() {
                                 ExitConfirmationDialog(
                                     onConfirm = { galleryViewModel.onExitConfirm() },
                                     onDismiss = { galleryViewModel.onExitDismiss() }
+                                )
+                            }
+
+                            // Show share confirmation dialog
+                            if (showShareDialog) {
+                                ShareConfirmationDialog(
+                                    onConfirm = { galleryViewModel.onShareConfirm() },
+                                    onDismiss = { galleryViewModel.onShareDismiss() }
                                 )
                             }
                         } else {
