@@ -2,6 +2,7 @@ package id.flwi.zipgalleryviewer.ui.screens.gallery
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -68,6 +69,9 @@ class GalleryViewModel @Inject constructor(
 
     private val _selectedImageForShare = MutableStateFlow<ImageEntry?>(null)
     val selectedImageForShare: StateFlow<ImageEntry?> = _selectedImageForShare.asStateFlow()
+
+    private val _shareImageEvent = MutableSharedFlow<Intent>(extraBufferCapacity = 1)
+    val shareImageEvent: SharedFlow<Intent> = _shareImageEvent.asSharedFlow()
 
     private val _finishActivityEvent = MutableSharedFlow<Unit>()
     val finishActivityEvent: SharedFlow<Unit> = _finishActivityEvent.asSharedFlow()
@@ -205,31 +209,38 @@ class GalleryViewModel @Inject constructor(
     }
 
     /**
-     * Confirms the share action - launches share intent with selected image.
+     * Confirms the share action - creates share intent and emits event for Activity to handle.
      */
     fun onShareConfirm() {
         val image = _selectedImageForShare.value ?: return
         _showShareDialog.value = false
 
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch {
             try {
-                val file = File(image.path)
+                // ImageEntry.path is relative, need to construct absolute path
+                val extractedDir = File(context.getExternalFilesDir(null), "extracted")
+                val file = File(extractedDir, image.path)
+                Log.d("GalleryViewModel", "Share - File path: ${file.absolutePath}, exists: ${file.exists()}")
+
                 val uri = FileProvider.getUriForFile(
                     context,
                     "${context.packageName}.fileprovider",
                     file
                 )
 
+                Log.d("GalleryViewModel", "Share - URI created: $uri")
+
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "image/*"
                     putExtra(Intent.EXTRA_STREAM, uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
 
-                context.startActivity(Intent.createChooser(shareIntent, "Share image"))
+                Log.d("GalleryViewModel", "Share - Emitting share event")
+                _shareImageEvent.emit(shareIntent)
+                Log.d("GalleryViewModel", "Share - Event emitted successfully")
             } catch (e: Exception) {
-                // Handle error silently or log
+                Log.e("GalleryViewModel", "Share - Error creating share intent", e)
             } finally {
                 _selectedImageForShare.value = null
             }

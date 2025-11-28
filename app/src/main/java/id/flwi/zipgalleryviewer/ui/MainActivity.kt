@@ -91,13 +91,19 @@ class MainActivity : ComponentActivity() {
                 }
 
                 // Listen for finish activity event
-                LaunchedEffect(Unit) {
-                    galleryViewModel.finishActivityEvent.collect {
-                        finish()
-                    }
+            LaunchedEffect(Unit) {
+                galleryViewModel.finishActivityEvent.collect {
+                    finish()
                 }
+            }
 
-                // Register file picker launcher
+            // Observe share image event
+            LaunchedEffect(Unit) {
+                galleryViewModel.shareImageEvent.collect { shareIntent ->
+                    android.util.Log.d("MainActivity", "Share event received, launching chooser")
+                    startActivity(Intent.createChooser(shareIntent, "Share image"))
+                }
+            }                // Register file picker launcher
                 val filePickerLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.StartActivityForResult()
                 ) { result ->
