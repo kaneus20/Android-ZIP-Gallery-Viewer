@@ -153,6 +153,7 @@ class MainActivity : ComponentActivity() {
                             val galleryUiState by galleryViewModel.uiState.collectAsState()
                             val isAtRoot by galleryViewModel.isAtRoot.collectAsState()
                             val isGridView by galleryViewModel.isGridView.collectAsState()
+                            val isRandomized by galleryViewModel.isRandomized.collectAsState()
 
                             // Handle image viewer navigation
                             LaunchedEffect(selectedImagePath, galleryUiState) {
@@ -171,10 +172,12 @@ class MainActivity : ComponentActivity() {
                                 uiState = galleryUiState,
                                 isAtRoot = isAtRoot,
                                 isGridView = isGridView,
+                                isRandomized = isRandomized,
                                 onFolderClick = { path -> galleryViewModel.navigateToFolder(path) },
                                 onImageClick = { path -> selectedImagePath = path },
                                 onUpClick = { galleryViewModel.navigateUp() },
                                 onLayoutToggle = { galleryViewModel.toggleLayout() },
+                                onRandomizeToggle = { galleryViewModel.toggleRandomize() },
                                 onExitRequest = { galleryViewModel.onExitRequest() }
                             )
 

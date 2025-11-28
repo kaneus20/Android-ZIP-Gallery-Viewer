@@ -37,7 +37,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Loading,
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -59,7 +59,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -89,7 +89,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -128,7 +128,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -155,7 +155,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = { clickedPath = it },
                     onImageClick = {},
                     onUpClick = {},
@@ -184,7 +184,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = { clickedPath = it },
                     onUpClick = {},
@@ -211,7 +211,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Error(errorMessage),
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -238,7 +238,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -259,7 +259,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -281,7 +281,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = false,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -305,7 +305,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = false,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = { upClicked = true },
@@ -329,7 +329,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -350,7 +350,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -372,7 +372,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = true,
-                    isGridView = false,
+                    isGridView = false,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -396,7 +396,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -426,7 +426,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(entries),
                     isAtRoot = true,
-                    isGridView = false,
+                    isGridView = false,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -450,7 +450,7 @@ class GalleryScreenTest {
                 GalleryScreen(
                     uiState = GalleryUiState.Success(emptyList()),
                     isAtRoot = true,
-                    isGridView = true,
+                    isGridView = true,\n                    isRandomized = false,
                     onFolderClick = {},
                     onImageClick = {},
                     onUpClick = {},
@@ -467,5 +467,82 @@ class GalleryScreenTest {
         // Assert - Function is correctly wired
         // BackHandler will call onExitRequest when back is pressed at root
         assertTrue(!exitRequested) // Not called yet in this test setup
+    }
+
+    @Test
+    fun randomizeButton_isDisplayed() {
+        // Arrange & Act
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(emptyList()),
+                    isAtRoot = true,
+                    isGridView = true,
+                    isRandomized = false,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onUpClick = {},
+                    onLayoutToggle = {},
+                    onRandomizeToggle = {},
+                    onExitRequest = {}
+                )
+            }
+        }
+
+        // Assert
+        composeTestRule.onNodeWithContentDescription("Enable randomize").assertIsDisplayed()
+    }
+
+    @Test
+    fun randomizeButton_whenActive_showsCorrectIcon() {
+        // Arrange & Act
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(emptyList()),
+                    isAtRoot = true,
+                    isGridView = true,
+                    isRandomized = true,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onUpClick = {},
+                    onLayoutToggle = {},
+                    onRandomizeToggle = {},
+                    onExitRequest = {}
+                )
+            }
+        }
+
+        // Assert
+        composeTestRule.onNodeWithContentDescription("Disable randomize").assertIsDisplayed()
+    }
+
+    @Test
+    fun randomizeButton_triggersCallback() {
+        // Arrange
+        var randomizeToggled = false
+
+        composeTestRule.setContent {
+            ZipGalleryViewerTheme {
+                GalleryScreen(
+                    uiState = GalleryUiState.Success(emptyList()),
+                    isAtRoot = true,
+                    isGridView = true,
+                    isRandomized = false,
+                    onFolderClick = {},
+                    onImageClick = {},
+                    onUpClick = {},
+                    onLayoutToggle = {},
+                    onRandomizeToggle = { randomizeToggled = true },
+                    onExitRequest = {}
+                )
+            }
+        }
+
+        // Act
+        composeTestRule.onNodeWithContentDescription("Enable randomize").performClick()
+
+        // Assert
+        assertTrue(randomizeToggled)
     }
 }

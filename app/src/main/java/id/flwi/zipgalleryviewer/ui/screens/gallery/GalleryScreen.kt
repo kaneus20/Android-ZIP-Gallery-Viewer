@@ -24,7 +24,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.outlined.Shuffle
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -58,10 +60,12 @@ fun GalleryScreen(
     uiState: GalleryUiState,
     isAtRoot: Boolean,
     isGridView: Boolean,
+    isRandomized: Boolean,
     onFolderClick: (String) -> Unit,
     onImageClick: (String) -> Unit,
     onUpClick: () -> Unit,
     onLayoutToggle: () -> Unit,
+    onRandomizeToggle: () -> Unit,
     onExitRequest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -90,6 +94,13 @@ fun GalleryScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onRandomizeToggle) {
+                        Icon(
+                            imageVector = if (isRandomized) Icons.Filled.Shuffle else Icons.Outlined.Shuffle,
+                            contentDescription = if (isRandomized) "Disable randomize" else "Enable randomize",
+                            tint = if (isRandomized) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                     IconButton(onClick = onLayoutToggle) {
                         Icon(
                             imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
@@ -402,10 +413,12 @@ private fun GalleryScreenPreview() {
             ),
             isAtRoot = true,
             isGridView = true,
+            isRandomized = false,
             onFolderClick = {},
             onImageClick = {},
             onUpClick = {},
             onLayoutToggle = {},
+            onRandomizeToggle = {},
             onExitRequest = {}
         )
     }
@@ -429,10 +442,12 @@ private fun GalleryScreenWithUpButtonPreview() {
             ),
             isAtRoot = false,
             isGridView = true,
+            isRandomized = false,
             onFolderClick = {},
             onImageClick = {},
             onUpClick = {},
             onLayoutToggle = {},
+            onRandomizeToggle = {},
             onExitRequest = {}
         )
     }
@@ -446,10 +461,12 @@ private fun GalleryScreenEmptyPreview() {
             uiState = GalleryUiState.Success(emptyList()),
             isAtRoot = true,
             isGridView = true,
+            isRandomized = false,
             onFolderClick = {},
             onImageClick = {},
             onUpClick = {},
             onLayoutToggle = {},
+            onRandomizeToggle = {},
             onExitRequest = {}
         )
     }
@@ -463,10 +480,12 @@ private fun GalleryScreenLoadingPreview() {
             uiState = GalleryUiState.Loading,
             isAtRoot = true,
             isGridView = true,
+            isRandomized = false,
             onFolderClick = {},
             onImageClick = {},
             onUpClick = {},
             onLayoutToggle = {},
+            onRandomizeToggle = {},
             onExitRequest = {}
         )
     }
@@ -496,10 +515,12 @@ private fun GalleryScreenListViewPreview() {
             ),
             isAtRoot = true,
             isGridView = false,
+            isRandomized = false,
             onFolderClick = {},
             onImageClick = {},
             onUpClick = {},
             onLayoutToggle = {},
+            onRandomizeToggle = {},
             onExitRequest = {}
         )
     }

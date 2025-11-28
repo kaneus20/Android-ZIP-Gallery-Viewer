@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.flwi.zipgalleryviewer.data.FileRepository
 import id.flwi.zipgalleryviewer.data.model.ExtractedEntry
+import id.flwi.zipgalleryviewer.data.model.FolderEntry
+import id.flwi.zipgalleryviewer.data.model.ImageEntry
 import id.flwi.zipgalleryviewer.manager.NotificationManager
 import id.flwi.zipgalleryviewer.service.CleanupService
 import kotlinx.coroutines.Dispatchers
@@ -49,6 +51,9 @@ class GalleryViewModel @Inject constructor(
     private val _isGridView = MutableStateFlow(true)
     val isGridView: StateFlow<Boolean> = _isGridView.asStateFlow()
 
+    private val _isRandomized = MutableStateFlow(false)
+    val isRandomized: StateFlow<Boolean> = _isRandomized.asStateFlow()
+
     private val _showExitDialog = MutableStateFlow(false)
     val showExitDialog: StateFlow<Boolean> = _showExitDialog.asStateFlow()
 
@@ -67,7 +72,8 @@ class GalleryViewModel @Inject constructor(
             _uiState.value = GalleryUiState.Loading
             try {
                 fileRepository.getExtractedEntries(path).collect { entries ->
-                    _uiState.value = GalleryUiState.Success(entries)
+                    val sortedEntries = sortEntries(entries)
+                    _uiState.value = GalleryUiState.Success(sortedEntries)
                 }
             } catch (e: Exception) {
                 _uiState.value = GalleryUiState.Error(
@@ -75,6 +81,22 @@ class GalleryViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    /**
+     * Sorts entries with folders first (alphabetically), then images (random or alphabetical).
+     */
+    private fun sortEntries(entries: List<ExtractedEntry>): List<ExtractedEntry> {
+        val folders = entries.filterIsInstance<FolderEntry>().sortedBy { it.name }
+        val images = entries.filterIsInstance<ImageEntry>()
+
+        val sortedImages = if (_isRandomized.value) {
+            images.shuffled()
+        } else {
+            images.sortedBy { it.name }
+        }
+
+        return folders + sortedImages
     }
 
     /**
@@ -112,6 +134,15 @@ class GalleryViewModel @Inject constructor(
      */
     fun toggleLayout() {
         _isGridView.value = !_isGridView.value
+    }
+
+    /**
+     * Toggles between randomized and alphabetical image order.
+     */
+    fun toggleRandomize() {
+        _isRandomized.value = !_isRandomized.value
+        // Reload entries with new sort order
+        loadEntries(_currentPath.value)
     }
 
     /**

@@ -404,4 +404,96 @@ class GalleryViewModelTest {
         assertTrue(eventReceived)
         job.cancel()
     }
+
+    @Test
+    fun `isRandomized is false by default`() = runTest {
+        // Arrange
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
+
+        // Act
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
+        advanceUntilIdle()
+
+        // Assert
+        assertFalse(viewModel.isRandomized.value)
+    }
+
+    @Test
+    fun `toggleRandomize switches isRandomized from false to true`() = runTest {
+        // Arrange
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
+        advanceUntilIdle()
+
+        // Act
+        viewModel.toggleRandomize()
+        advanceUntilIdle()
+
+        // Assert
+        assertTrue(viewModel.isRandomized.value)
+    }
+
+    @Test
+    fun `toggleRandomize switches isRandomized from true to false`() = runTest {
+        // Arrange
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(emptyList()))
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
+        advanceUntilIdle()
+
+        viewModel.toggleRandomize() // Set to true
+        advanceUntilIdle()
+
+        // Act
+        viewModel.toggleRandomize() // Toggle back to false
+        advanceUntilIdle()
+
+        // Assert
+        assertFalse(viewModel.isRandomized.value)
+    }
+
+    @Test
+    fun `sortEntries puts folders first alphabetically`() = runTest {
+        // Arrange
+        val entries = listOf(
+            ImageEntry("image1.jpg", "image1.jpg", null, "".toUri(), null, "image/jpeg"),
+            FolderEntry("zebra", "zebra", null, 0),
+            FolderEntry("alpha", "alpha", null, 0),
+            ImageEntry("image2.jpg", "image2.jpg", null, "".toUri(), null, "image/jpeg")
+        )
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(entries))
+
+        // Act
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
+        advanceUntilIdle()
+
+        // Assert
+        val state = viewModel.uiState.value as GalleryUiState.Success
+        val sortedEntries = state.entries
+        assertTrue(sortedEntries[0] is FolderEntry)
+        assertTrue(sortedEntries[1] is FolderEntry)
+        assertEquals("alpha", (sortedEntries[0] as FolderEntry).name)
+        assertEquals("zebra", (sortedEntries[1] as FolderEntry).name)
+    }
+
+    @Test
+    fun `sortEntries sorts images alphabetically when not randomized`() = runTest {
+        // Arrange
+        val entries = listOf(
+            ImageEntry("zebra.jpg", "zebra.jpg", null, "".toUri(), null, "image/jpeg"),
+            ImageEntry("alpha.jpg", "alpha.jpg", null, "".toUri(), null, "image/jpeg"),
+            ImageEntry("middle.jpg", "middle.jpg", null, "".toUri(), null, "image/jpeg")
+        )
+        `when`(fileRepository.getExtractedEntries("/")).thenReturn(flowOf(entries))
+
+        // Act
+        viewModel = GalleryViewModel(fileRepository, cleanupService, notificationManager)
+        advanceUntilIdle()
+
+        // Assert
+        val state = viewModel.uiState.value as GalleryUiState.Success
+        val sortedEntries = state.entries
+        assertEquals("alpha.jpg", (sortedEntries[0] as ImageEntry).name)
+        assertEquals("middle.jpg", (sortedEntries[1] as ImageEntry).name)
+        assertEquals("zebra.jpg", (sortedEntries[2] as ImageEntry).name)
+    }
 }
