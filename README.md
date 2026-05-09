@@ -5,7 +5,6 @@
 ## Added
 
 - Support for encrypted 7z archives (p7zip fallback)
-
 - Image sticking to screen borders
 - Immersive mode
 - Double-tap zoom at tap position and double-tap unzoom
