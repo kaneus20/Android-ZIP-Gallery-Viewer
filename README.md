@@ -1,5 +1,21 @@
 # Android Zip Gallery Viewer
 
+###ariefbayu's [Android-ZIP-Gallery-Viewer]https://github.com/ariefbayu/Android-ZIP-Gallery-Viewer with some fixes and features
+
+## Added
+
+Support for encrypted 7z archives (p7zip fallback)
+
+Image sticking to screen borders
+Immersive mode
+Double-tap zoom at tap position and double-tap unzoom
+Image preloading
+
+## Fixed
+
+Crashing due to Firebase (it is removed)
+Not full resolution of images
+
 ## Overview
 
 The Android Zip Gallery Viewer addresses a user need for a private method of viewing image archives. Currently, users often have to extract zip files to their device's public storage, making the images visible to other applications and potentially leaving sensitive data behind. This application solves that problem by treating image archives as temporary, self-contained sessions. All content is loaded into the application's private, sandboxed storage and is automatically and irrevocably deleted upon closing the app.

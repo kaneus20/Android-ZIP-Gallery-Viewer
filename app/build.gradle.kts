@@ -88,6 +88,7 @@ dependencies {
 
     // 7-Zip-JBinding-4Android
     implementation("com.github.omicronapps:7-Zip-JBinding-4Android:Release-16.02-2.03")
+    implementation("com.hzy:libp7zip:1.7.0@aar")
 
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))

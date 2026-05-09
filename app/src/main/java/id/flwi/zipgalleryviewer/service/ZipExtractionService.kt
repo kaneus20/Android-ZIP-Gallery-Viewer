@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.os.StatFs
 import android.util.Log
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import id.flwi.zipgalleryviewer.data.exception.InsufficientStorageException
 import id.flwi.zipgalleryviewer.data.exception.PasswordRequiredException
 import id.flwi.zipgalleryviewer.data.exception.ZipCorruptionException
@@ -28,6 +27,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
 import javax.inject.Inject
+import com.hzy.libp7zip.P7ZipApi
 
 /**
  * Service responsible for extracting zip archives using 7-Zip-JBinding-4Android.
@@ -54,6 +54,8 @@ class ZipExtractionService @Inject constructor(
         var randomAccessFile: RandomAccessFile? = null
         var inStream: RandomAccessFileInStream? = null
         var inArchive: IInArchive? = null
+        var tempZipFile: File? = null
+        var outputDir: File? = null
 
         try {
             Log.d(TAG, "Starting extraction for URI: $zipUri")
@@ -61,7 +63,7 @@ class ZipExtractionService @Inject constructor(
             val baseDir = context.getExternalFilesDir(null)
                 ?: throw IllegalStateException("External files directory not available")
 
-            val outputDir = File(baseDir, EXTRACTED_DIR_NAME).apply {
+            outputDir = File(baseDir, EXTRACTED_DIR_NAME).apply {
                 if (!exists()) {
                     mkdirs()
                 }
@@ -72,7 +74,7 @@ class ZipExtractionService @Inject constructor(
 
             // Copy zip file to temporary location
             emit(ExtractionState.Loading(progress = 0, currentFile = "Preparing..."))
-            val tempZipFile = copyUriToTempFile(zipUri)
+            tempZipFile = copyUriToTempFile(zipUri)
 
             try {
                 // Extract using 7-Zip library
@@ -81,7 +83,14 @@ class ZipExtractionService @Inject constructor(
                 randomAccessFile = RandomAccessFile(tempZipFile, "r")
                 inStream = RandomAccessFileInStream(randomAccessFile)
 
-                // Open archive with password-aware callback
+                // If it's a 7z file and no password provided, request it BEFORE attempting to open
+                // because 7z encrypts its header, so we can't even check encryption status without it
+                if (getFileExtension(zipUri).equals("7z", ignoreCase = true) && password == null) {
+                    Log.d(TAG, "7z file detected, requesting password upfront")
+                    emit(ExtractionState.PasswordRequired)
+                    return@flow
+                }
+
                 val openCallback = ArchiveOpenCallback(password)
                 inArchive = SevenZip.openInArchive(null, inStream, openCallback)
 
@@ -96,19 +105,27 @@ class ZipExtractionService @Inject constructor(
                 val itemCount = inArchive.numberOfItems
                 Log.d(TAG, "Archive contains $itemCount items")
 
+                // For archives with encrypted headers, item count might be reported as -1 or 0
+                // We can still extract by iterating through all available indices
+                val effectiveItemCount = if (itemCount <= 0) {
+                    // Try to get a reasonable upper bound, or just iterate and stop when errors occur
+                    Log.w(TAG, "Item count unavailable (encrypted header), iterating blindly")
+                    Int.MAX_VALUE // Will break when getProperty throws for out-of-bounds
+                } else {
+                    itemCount
+                }
+
                 emit(ExtractionState.Loading(progress = 20, currentFile = "Extracting files..."))
 
-                // Extract all items
                 val extractCallback = ArchiveExtractCallback(
                     inArchive,
                     outputDir,
-                    itemCount,
+                    effectiveItemCount,
                     password,
                     onProgress = { current, total, fileName ->
-                        val progress = 20 + ((current.toFloat() / total) * 70).toInt()
-                        // Don't emit too frequently to avoid overwhelming the UI
+                        val progress = 20 + ((current.toFloat() / total.coerceAtLeast(1)) * 70).toInt()
                         if (current % 5 == 0 || current == total) {
-                            // Note: Cannot use emit inside callback, will collect in main flow
+                            // progress tracking
                         }
                     }
                 )
@@ -136,19 +153,67 @@ class ZipExtractionService @Inject constructor(
             }
         } catch (e: ZipCorruptionException) {
             Log.e(TAG, "Zip corruption detected", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
             emit(ExtractionState.Error(e, "The selected file is corrupted or invalid."))
         } catch (e: InsufficientStorageException) {
             Log.e(TAG, "Insufficient storage", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
             emit(ExtractionState.Error(e, "Not enough storage space to extract this archive."))
         } catch (e: PasswordRequiredException) {
             Log.e(TAG, "Password required", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
             emit(ExtractionState.Error(e, "This archive is password protected."))
         } catch (e: SevenZipException) {
             Log.e(TAG, "7-Zip error during extraction", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
+            Log.d(TAG, "SevenZipException caught. Message: ${e.message}")
+            Log.d(TAG, "File extension: ${getFileExtension(zipUri)}")
+            Log.d(TAG, "Contains 'can't be opened': ${e.message?.contains("can't be opened with any of the registered codecs")}")
+            Log.d(TAG, "Is 7z file: ${getFileExtension(zipUri).equals("7z", ignoreCase = true)}")
+            Log.e(TAG, "7-Zip error during extraction", e)
+
+            // Check if this is the 7z encrypted filename issue
+            if (e.message?.contains("can't be opened with any of the registered codecs") == true &&
+                getFileExtension(zipUri).equals("7z", ignoreCase = true)) {
+
+                Log.d(TAG, "7z encrypted header detected, falling back to p7zip")
+                emit(ExtractionState.Loading(progress = 15, currentFile = "Using alternative extractor..."))
+
+                try {
+                    // Close streams before fallback
+                    try {
+                        inStream?.close()
+                        randomAccessFile?.close()
+                    } catch (closeError: Exception) {
+                        Log.e(TAG, "Error closing streams before fallback", closeError)
+                    }
+
+                    // Safe access with null checks
+                    val archivePath = tempZipFile?.absolutePath
+                    val outPath = outputDir?.absolutePath
+
+                    if (archivePath != null && outPath != null) {
+                        val success = extractViaP7zip(
+                            archivePath = archivePath,
+                            outputDir = outPath,
+                            password = password
+                        )
+
+                        if (success) {
+                            val fileCount = countFiles(outputDir!!)
+                            Log.i(TAG, "p7zip successfully extracted $fileCount files")
+                            emit(ExtractionState.Success(
+                                extractedPath = outPath,
+                                fileCount = fileCount
+                            ))
+                        } else {
+                            emit(ExtractionState.Error(e, "Alternative extraction also failed."))
+                        }
+                    } else {
+                        emit(ExtractionState.Error(e, "Required paths are not available for fallback extraction."))
+                    }
+                } catch (p7zipError: Exception) {
+                    Log.e(TAG, "p7zip fallback also failed", p7zipError)
+                    emit(ExtractionState.Error(p7zipError, "Extraction failed with both methods."))
+                }
+                return@flow
+            }
 
             // Check for specific error types
             val errorMessage = when {
@@ -165,7 +230,6 @@ class ZipExtractionService @Inject constructor(
             emit(ExtractionState.Error(e, errorMessage))
         } catch (e: Exception) {
             Log.e(TAG, "Unexpected error during extraction", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
             emit(ExtractionState.Error(e, "An error occurred while extracting the archive."))
         } finally {
             // Ensure cleanup even on error
@@ -173,6 +237,7 @@ class ZipExtractionService @Inject constructor(
                 inArchive?.close()
                 inStream?.close()
                 randomAccessFile?.close()
+                tempZipFile?.delete()
             } catch (e: Exception) {
                 Log.e(TAG, "Error closing resources", e)
             }
@@ -207,12 +272,16 @@ class ZipExtractionService @Inject constructor(
     private inner class ArchiveOpenCallback(
         private val password: String? = null
     ) : IArchiveOpenCallback, ICryptoGetTextPassword {
+
+        var openSucceeded = false
+
         override fun setTotal(files: Long?, bytes: Long?) {
             Log.d(TAG, "Archive open, total: $files files, $bytes bytes")
         }
 
         override fun setCompleted(files: Long?, bytes: Long?) {
-            Log.d(TAG, "Archive open, completed: $files files, $bytes bytes")
+            openSucceeded = true
+            Log.d(TAG, "Archive open completed: $files files, $bytes bytes")
         }
 
         override fun cryptoGetTextPassword(): String {
@@ -369,5 +438,47 @@ class ZipExtractionService @Inject constructor(
             }
         }
         return count
+    }
+
+    /**
+     * Extracts the file extension from a Uri.
+     */
+    private fun getFileExtension(uri: Uri): String {
+        var fileName = ""
+
+        // Try to get the display name from the content resolver
+        try {
+            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                if (cursor.moveToFirst() && nameIndex >= 0) {
+                    fileName = cursor.getString(nameIndex)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error querying file name", e)
+        }
+
+        // Fallback to parsing the URI path if the resolver didn't work
+        if (fileName.isEmpty()) {
+            fileName = uri.lastPathSegment?.substringAfterLast('/') ?: ""
+        }
+
+        return fileName.substringAfterLast('.', "")
+    }
+
+    /**
+     * Fallback extraction method for 7z files, especially with encrypted headers.
+     */
+    private fun extractViaP7zip(archivePath: String, outputDir: String, password: String?): Boolean {
+        // Construct the command, adding a password if one exists
+        val command = if (password != null) {
+            "7z x \"$archivePath\" -o\"$outputDir\" -p\"$password\" -y"
+        } else {
+            "7z x \"$archivePath\" -o\"$outputDir\" -y"
+        }
+
+        // Execute the command and check the return code
+        val result = P7ZipApi.executeCommand(command)
+        return result == 0
     }
 }
