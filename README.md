@@ -1,6 +1,6 @@
 # Android Zip Gallery Viewer
 
-###ariefbayu's [Android-ZIP-Gallery-Viewer]https://github.com/ariefbayu/Android-ZIP-Gallery-Viewer with some fixes and features
+### ariefbayu's [Android-ZIP-Gallery-Viewer]https://github.com/ariefbayu/Android-ZIP-Gallery-Viewer with some fixes and features
 
 ## Added
 
