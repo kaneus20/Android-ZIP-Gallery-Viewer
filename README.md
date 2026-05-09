@@ -4,17 +4,17 @@
 
 ## Added
 
-Support for encrypted 7z archives (p7zip fallback)
+- Support for encrypted 7z archives (p7zip fallback)
 
-Image sticking to screen borders
-Immersive mode
-Double-tap zoom at tap position and double-tap unzoom
-Image preloading
+- Image sticking to screen borders
+- Immersive mode
+- Double-tap zoom at tap position and double-tap unzoom
+- Image preloading
 
 ## Fixed
 
-Crashing due to Firebase (it is removed)
-Not full resolution of images
+- Crashing due to Firebase (it is removed)
+- Not full resolution of images
 
 ## Overview
 
